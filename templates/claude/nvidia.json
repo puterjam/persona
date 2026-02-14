@@ -1,0 +1,13 @@
+{
+  "name": "Nvidia",
+  "website": "https://build.nvidia.com",
+  "baseUrl": "https://integrate.api.nvidia.com",
+  "apiFormat": "openai-completions",
+  "defaultModels": {
+    "haiku": "moonshotai/kimi-k2.5",
+    "opus": "moonshotai/kimi-k2.5",
+    "sonnet": "moonshotai/kimi-k2.5",
+    "default": "moonshotai/kimi-k2.5"
+  },
+  "description": "Nvidia NIM API"
+}

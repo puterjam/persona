@@ -1,0 +1,13 @@
+{
+  "name": "SiliconFlow",
+  "website": "https://siliconflow.cn",
+  "baseUrl": "https://api.siliconflow.cn",
+  "apiFormat": "openai-completions",
+  "defaultModels": {
+    "haiku": "Pro/MiniMaxAI/MiniMax-M2.1",
+    "opus": "Pro/MiniMaxAI/MiniMax-M2.1",
+    "sonnet": "Pro/MiniMaxAI/MiniMax-M2.1",
+    "default": "Pro/MiniMaxAI/MiniMax-M2.1"
+  },
+  "description": "SiliconFlow API (China)"
+}

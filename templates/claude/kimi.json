@@ -1,0 +1,13 @@
+{
+  "name": "Kimi API",
+  "website": "https://platform.moonshot.cn/console",
+  "baseUrl": "https://api.moonshot.cn/anthropic",
+  "apiFormat": "anthropic-messages",
+  "defaultModels": {
+    "haiku": "kimi-k2.5",
+    "opus": "kimi-k2.5",
+    "sonnet": "kimi-k2.5",
+    "default": "kimi-k2.5"
+  },
+  "description": "Kimi AI API by Moonshot"
+}

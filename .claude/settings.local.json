@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build)",
+      "Bash(persona switch:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(persona test:*)",
+      "Bash(git add src/ templates/ package.json tsconfig.json .gitignore .claude/)"
+    ]
+  }
+}

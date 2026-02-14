@@ -1,0 +1,13 @@
+{
+  "name": "SiliconFlow en",
+  "website": "https://siliconflow.com",
+  "baseUrl": "https://api.siliconflow.com",
+  "apiFormat": "openai-completions",
+  "defaultModels": {
+    "haiku": "MiniMaxAI/MiniMax-M2.1",
+    "opus": "MiniMaxAI/MiniMax-M2.1",
+    "sonnet": "MiniMaxAI/MiniMax-M2.1",
+    "default": "MiniMaxAI/MiniMax-M2.1"
+  },
+  "description": "SiliconFlow API (International)"
+}

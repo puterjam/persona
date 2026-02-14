@@ -1,0 +1,13 @@
+{
+  "name": "Cloudflare Workers AI",
+  "website": "https://workers.cloudflare.com",
+  "baseUrl": "https://api.cloudflare.com/client/v4/workers/ai",
+  "apiFormat": "openai-completions",
+  "defaultModels": {
+    "haiku": "@cf/meta/llama-3.1-8b-instruct",
+    "opus": "@cf/meta/llama-3.1-70b-instruct",
+    "sonnet": "@cf/meta/llama-3.1-70b-instruct",
+    "default": "@cf/meta/llama-3.1-8b-instruct"
+  },
+  "description": "Cloudflare edge AI"
+}

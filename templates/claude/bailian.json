@@ -1,0 +1,13 @@
+{
+  "name": "Aliyun Bailian",
+  "website": "https://bailian.console.aliyun.com",
+  "baseUrl": "https://dashscope.aliyuncs.com/apps/anthropic",
+  "apiFormat": "anthropic-messages",
+  "defaultModels": {
+    "haiku": "",
+    "opus": "",
+    "sonnet": "",
+    "default": ""
+  },
+  "description": "Aliyun Bailian (阿里百炼)"
+}

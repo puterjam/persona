@@ -1,0 +1,13 @@
+{
+  "name": "OpenRouter",
+  "website": "https://openrouter.ai",
+  "baseUrl": "https://openrouter.ai/api",
+  "apiFormat": "anthropic-messages",
+  "defaultModels": {
+    "haiku": "anthropic/claude-haiku-4.5",
+    "opus": "anthropic/claude-opus-4.5",
+    "sonnet": "anthropic/claude-sonnet-4.5",
+    "default": "anthropic/claude-sonnet-4.5"
+  },
+  "description": "OpenRouter - Unified API for multiple providers"
+}

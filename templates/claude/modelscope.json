@@ -1,0 +1,13 @@
+{
+  "name": "ModelScope",
+  "website": "https://modelscope.cn",
+  "baseUrl": "https://api-inference.modelscope.cn",
+  "apiFormat": "anthropic-messages",
+  "defaultModels": {
+    "haiku": "ZhipuAI/GLM-4.7",
+    "opus": "ZhipuAI/GLM-4.7",
+    "sonnet": "ZhipuAI/GLM-4.7",
+    "default": "ZhipuAI/GLM-4.7"
+  },
+  "description": "ModelScope API"
+}

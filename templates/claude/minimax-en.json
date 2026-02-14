@@ -1,0 +1,17 @@
+{
+  "name": "MiniMax en",
+  "website": "https://platform.minimax.io",
+  "baseUrl": "https://api.minimax.io/anthropic",
+  "apiFormat": "anthropic-messages",
+  "defaultModels": {
+    "haiku": "MiniMax-M2.5",
+    "opus": "MiniMax-M2.5",
+    "sonnet": "MiniMax-M2.5",
+    "default": "MiniMax-M2.5"
+  },
+  "description": "MiniMax API (International)",
+  "extraEnv": {
+    "API_TIMEOUT_MS": "3000000",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "DeepSeek",
+  "website": "https://platform.deepseek.com",
+  "baseUrl": "https://api.deepseek.com/anthropic",
+  "apiFormat": "anthropic-messages",
+  "defaultModels": {
+    "haiku": "DeepSeek-V3.2",
+    "opus": "DeepSeek-V3.2",
+    "sonnet": "DeepSeek-V3.2",
+    "default": "DeepSeek-V3.2"
+  },
+  "description": "DeepSeek AI API"
+}

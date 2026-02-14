@@ -1,0 +1,13 @@
+{
+  "name": "Kimi Coding",
+  "website": "https://kimi.moonshot.cn",
+  "baseUrl": "https://api.kimi.com/coding/",
+  "apiFormat": "anthropic-messages",
+  "defaultModels": {
+    "haiku": "kimi-for-coding",
+    "opus": "kimi-for-coding",
+    "sonnet": "kimi-for-coding",
+    "default": "kimi-for-coding"
+  },
+  "description": "Kimi Code by Moonshot"
+}

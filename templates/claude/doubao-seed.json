@@ -1,0 +1,16 @@
+{
+  "name": "Doubao Seed",
+  "website": "https://www.volcengine.com/product/doubao",
+  "baseUrl": "https://ark.cn-beijing.volces.com/api/coding",
+  "apiFormat": "anthropic-messages",
+  "defaultModels": {
+    "haiku": "doubao-seed-code-preview-latest",
+    "opus": "doubao-seed-code-preview-latest",
+    "sonnet": "doubao-seed-code-preview-latest",
+    "default": "doubao-seed-code-preview-latest"
+  },
+  "description": "ByteDance Doubao Seed API",
+  "extraEnv": {
+    "API_TIMEOUT_MS": "3000000"
+  }
+}

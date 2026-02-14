@@ -1,0 +1,13 @@
+{
+  "name": "Xiaomi MiMo",
+  "website": "https://platform.xiaomimimo.com",
+  "baseUrl": "https://api.xiaomimimo.com/anthropic",
+  "apiFormat": "anthropic-messages",
+  "defaultModels": {
+    "haiku": "mimo-v2-flash",
+    "opus": "mimo-v2-flash",
+    "sonnet": "mimo-v2-flash",
+    "default": "mimo-v2-flash"
+  },
+  "description": "Xiaomi MiMo API"
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Ollama",
+  "website": "https://ollama.com",
+  "baseUrl": "http://localhost:11434/v1",
+  "apiFormat": "openai-completions",
+  "defaultModels": {
+    "haiku": "llama3.2",
+    "opus": "llama3.3",
+    "sonnet": "llama3.1",
+    "default": "llama3.2"
+  },
+  "description": "Local AI models"
+}

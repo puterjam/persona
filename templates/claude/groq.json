@@ -1,0 +1,13 @@
+{
+  "name": "Groq",
+  "website": "https://groq.com",
+  "baseUrl": "https://api.groq.com/openai/v1",
+  "apiFormat": "openai-completions",
+  "defaultModels": {
+    "haiku": "llama-3.1-70b-versatile",
+    "opus": "llama-3.1-405b-reasoning",
+    "sonnet": "llama-3.1-70b-versatile",
+    "default": "llama-3.1-70b-versatile"
+  },
+  "description": "Fast inference API"
+}

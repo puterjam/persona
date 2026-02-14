@@ -1,0 +1,13 @@
+{
+  "name": "Zhipu GLM en",
+  "website": "https://z.ai",
+  "baseUrl": "https://api.z.ai/api/anthropic",
+  "apiFormat": "anthropic-messages",
+  "defaultModels": {
+    "haiku": "glm-5",
+    "opus": "glm-5",
+    "sonnet": "glm-5",
+    "default": "glm-5"
+  },
+  "description": "Zhipu GLM API (International)"
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Zhipu GLM",
+  "website": "https://open.bigmodel.cn",
+  "baseUrl": "https://open.bigmodel.cn/api/anthropic",
+  "apiFormat": "anthropic-messages",
+  "defaultModels": {
+    "haiku": "glm-5",
+    "opus": "glm-5",
+    "sonnet": "glm-5",
+    "default": "glm-5"
+  },
+  "description": "Zhipu GLM API (China)"
+}
