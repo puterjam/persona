@@ -62,6 +62,11 @@ const commands = {
     aliases: ['h', '?'],
     description: 'Show help information',
     usage: 'persona help [command]'
+  },
+  readme: {
+    aliases: [],
+    description: 'Show README (persona readme [en|zh])',
+    usage: 'persona readme [en|zh]'
   }
 };
 
@@ -273,6 +278,30 @@ async function main(): Promise<void> {
 
       case 'help': {
         showHelp(args[1]);
+        break;
+      }
+
+      case 'readme': {
+        const lang = args[1] || 'en';
+        const fs = require('fs');
+        const path = require('path');
+
+        let readmePath;
+        if (lang === 'zh' || lang === 'zh-CN') {
+          readmePath = path.join(__dirname, '..', 'README.zh-CN.md');
+        } else {
+          readmePath = path.join(__dirname, '..', 'README.md');
+        }
+
+        try {
+          if (fs.existsSync(readmePath)) {
+            console.log(fs.readFileSync(readmePath, 'utf-8'));
+          } else {
+            console.log(chalk.red('README not found.'));
+          }
+        } catch (error) {
+          console.log(chalk.red('Failed to read README:'), error);
+        }
         break;
       }
 
