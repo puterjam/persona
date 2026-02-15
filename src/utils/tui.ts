@@ -140,17 +140,33 @@ export function startInteractiveMode(): void {
     showProviderDetails(providers[0]);
   }
 
-  // Handle list selection (when using arrow keys) - use 'highlight' event for navigation
-  (providerList as any).on('highlight', () => {
-    const selected = (providerList as any).selected;
-    const providers = configStore.getProviders();
-    if (providers[selected]) {
-      showProviderDetails(providers[selected]);
+  // Handle list navigation with arrow keys - show provider details on up/down
+  screen.key('up', () => {
+    const current = (providerList as any).selected;
+    if (current > 0) {
+      providerList.up(1);
+      const providers = configStore.getProviders();
+      const newSelected = (providerList as any).selected;
+      if (providers[newSelected]) {
+        showProviderDetails(providers[newSelected]);
+      }
     }
   });
 
-  // Also handle action event (for mouse click)
-  (providerList as any).on('action', () => {
+  screen.key('down', () => {
+    const current = (providerList as any).selected;
+    const providers = configStore.getProviders();
+    if (current < providers.length - 1) {
+      providerList.down(1);
+      const newSelected = (providerList as any).selected;
+      if (providers[newSelected]) {
+        showProviderDetails(providers[newSelected]);
+      }
+    }
+  });
+
+  // Handle mouse click on list items
+  (providerList as any).on('select', () => {
     const selected = (providerList as any).selected;
     const providers = configStore.getProviders();
     if (providers[selected]) {

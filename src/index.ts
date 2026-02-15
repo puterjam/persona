@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+// Set UTF-8 locale for TUI Chinese character display
+process.env.LC_ALL = 'en_US.UTF-8';
+process.env.LANG = 'en_US.UTF-8';
+
 // Persona - CLI tool to switch Claude CLI configurations
 
 import chalk from 'chalk';
@@ -10,6 +14,7 @@ import { addProviderInteractive, addProviderFromArgs } from './commands/add';
 import { editProviderInteractive, editProviderFromArgs } from './commands/edit';
 import { deleteProviderInteractive, deleteProvider } from './commands/delete';
 import { testProviderInteractive, testProviderById } from './commands/test';
+import { editGeneralConfig, showGeneralConfig } from './commands/config';
 import { startInteractiveMode } from './utils/tui';
 
 const commands = {
@@ -18,10 +23,10 @@ const commands = {
     description: 'List all configured providers',
     usage: 'persona list'
   },
-  switch: {
-    aliases: ['use', 'select'],
+  use: {
+    aliases: ['switch', 'select'],
     description: 'Switch to a provider',
-    usage: 'persona switch <provider-id>'
+    usage: 'persona use <provider-id>'
   },
   add: {
     aliases: ['create', 'new'],
@@ -33,15 +38,15 @@ const commands = {
     description: 'Edit an existing provider',
     usage: 'persona edit <provider-id> [--name <name>] [--base-url <url>] [--api-key <key>] [--api-format <format>]'
   },
-  delete: {
-    aliases: ['remove', 'rm', 'del'],
+  remove: {
+    aliases: ['delete', 'rm', 'del'],
     description: 'Delete a provider',
-    usage: 'persona delete <provider-id>'
+    usage: 'persona remove <provider-id>'
   },
-  test: {
-    aliases: ['ping', 'check'],
+  ping: {
+    aliases: ['test', 'check'],
     description: 'Test provider API connection',
-    usage: 'persona test [provider-id]'
+    usage: 'persona ping [provider-id]'
   },
   interactive: {
     aliases: ['i', 'tui'],
@@ -58,15 +63,15 @@ const commands = {
     description: 'List available provider templates',
     usage: 'persona templates'
   },
+  config: {
+    aliases: ['cfg'],
+    description: 'Edit general configuration (env vars merged with provider)',
+    usage: 'persona config [edit|show]'
+  },
   help: {
     aliases: ['h', '?'],
     description: 'Show help information',
     usage: 'persona help [command]'
-  },
-  readme: {
-    aliases: [],
-    description: 'Show README (persona readme [en|zh])',
-    usage: 'persona readme [en|zh]'
   }
 };
 
@@ -88,9 +93,9 @@ function showHelp(command?: string): void {
 
     console.log(chalk.bold('\nExamples:'));
     console.log('  persona list');
-    console.log('  persona switch abc12345');
+    console.log('  persona use abc12345');
     console.log('  persona add --template openai --api-key sk-xxx');
-    console.log('  persona test');
+    console.log('  persona ping');
     console.log('  persona interactive');
     console.log();
   }
@@ -100,7 +105,7 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
   if (args.length === 0) {
-    showHelp();
+    startInteractiveMode();
     return;
   }
 
@@ -109,22 +114,23 @@ async function main(): Promise<void> {
   // Handle aliases
   const aliasMap: Record<string, string> = {
     ls: 'list',
-    use: 'switch',
-    select: 'switch',
+    switch: 'use',
+    select: 'use',
     create: 'add',
     new: 'add',
     update: 'edit',
     modify: 'edit',
-    remove: 'delete',
-    rm: 'delete',
-    del: 'delete',
-    ping: 'test',
-    check: 'test',
+    delete: 'remove',
+    rm: 'remove',
+    del: 'remove',
+    test: 'ping',
+    check: 'ping',
     i: 'interactive',
     tui: 'interactive',
     info: 'status',
     current: 'status',
     template: 'templates',
+    cfg: 'config',
     h: 'help',
     '?': 'help'
   };
@@ -138,11 +144,27 @@ async function main(): Promise<void> {
         break;
       }
 
-      case 'switch': {
-        if (args.length < 2) {
+      case 'use': {
+        // Parse options for use command
+        const parsed = parseArgs({
+          args: args.slice(1),
+          options: {
+            update: { type: 'boolean', short: 'u', default: false }
+          },
+          strict: false
+        });
+
+        const remainingArgs = parsed.positionals;
+        const shouldUpdate = parsed.values.update === true;
+
+        if (remainingArgs.length < 1 && !shouldUpdate) {
           await switchProviderInteractive();
+        } else if (shouldUpdate) {
+          // Update Claude config without switching provider
+          const { updateClaudeConfig } = await import('./commands/switch');
+          updateClaudeConfig();
         } else {
-          switchProvider(args[1]);
+          switchProvider(remainingArgs[0], true);
         }
         break;
       }
@@ -226,7 +248,7 @@ async function main(): Promise<void> {
         break;
       }
 
-      case 'delete': {
+      case 'remove': {
         if (args.length < 2) {
           await deleteProviderInteractive();
         } else {
@@ -235,7 +257,7 @@ async function main(): Promise<void> {
         break;
       }
 
-      case 'test': {
+      case 'ping': {
         if (args.length < 2) {
           await testProviderInteractive();
         } else {
@@ -276,32 +298,22 @@ async function main(): Promise<void> {
         break;
       }
 
-      case 'help': {
-        showHelp(args[1]);
+      case 'config': {
+        const subCommand = args[1];
+        if (subCommand === 'edit' || !subCommand) {
+          editGeneralConfig();
+        } else if (subCommand === 'show') {
+          showGeneralConfig();
+        } else {
+          console.log(chalk.red(`Unknown config subcommand: ${subCommand}`));
+          console.log(chalk.yellow('Usage: persona config [edit|show]'));
+          process.exit(1);
+        }
         break;
       }
 
-      case 'readme': {
-        const lang = args[1] || 'en';
-        const fs = require('fs');
-        const path = require('path');
-
-        let readmePath;
-        if (lang === 'zh' || lang === 'zh-CN') {
-          readmePath = path.join(__dirname, '..', 'README.zh-CN.md');
-        } else {
-          readmePath = path.join(__dirname, '..', 'README.md');
-        }
-
-        try {
-          if (fs.existsSync(readmePath)) {
-            console.log(fs.readFileSync(readmePath, 'utf-8'));
-          } else {
-            console.log(chalk.red('README not found.'));
-          }
-        } catch (error) {
-          console.log(chalk.red('Failed to read README:'), error);
-        }
+      case 'help': {
+        showHelp(args[1]);
         break;
       }
 
