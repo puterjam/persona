@@ -125,8 +125,24 @@ export function startInteractiveMode(): void {
   // Load providers
   refreshProviderList();
 
-  // Handle list selection
+  // Auto-select first provider and show details on startup
+  const providers = configStore.getProviders();
+  if (providers.length > 0) {
+    providerList.select(0);
+    showProviderDetails(providers[0]);
+  }
+
+  // Handle list selection (when using arrow keys)
   (providerList as any).on('select', () => {
+    const selected = (providerList as any).selected;
+    const providers = configStore.getProviders();
+    if (providers[selected]) {
+      showProviderDetails(providers[selected]);
+    }
+  });
+
+  // Also handle action event (for mouse click)
+  (providerList as any).on('action', () => {
     const selected = (providerList as any).selected;
     const providers = configStore.getProviders();
     if (providers[selected]) {
@@ -190,18 +206,27 @@ export function startInteractiveMode(): void {
 function refreshProviderList(): void {
   const providers = configStore.getProviders();
   const activeProvider = configStore.getActiveProvider();
+  const currentSelected = (providerList as any).selected;
 
   (providerList as any).clearItems();
 
   if (providers.length === 0) {
     (providerList as any).addItem('  (No providers)');
     (providerList as any).addItem('  Press a to add one');
+    detailBox.setContent('No providers available. Press [a] to add a new provider.');
   } else {
     providers.forEach((p) => {
       const isActive = activeProvider?.id === p.id;
       const label = isActive ? `* ${p.name} (active)` : `  ${p.name}`;
       (providerList as any).addItem(label);
     });
+
+    // Show details for currently selected provider (or first one if none selected)
+    const selectedIndex = currentSelected !== undefined && currentSelected < providers.length ? currentSelected : 0;
+    if (providers[selectedIndex]) {
+      providerList.select(selectedIndex);
+      showProviderDetails(providers[selectedIndex]);
+    }
   }
 
   screen.render();
