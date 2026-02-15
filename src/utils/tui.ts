@@ -28,6 +28,14 @@ const colors = {
 };
 
 export function startInteractiveMode(): void {
+  // Set UTF-8 locale for proper Unicode display in TUI
+  // Only set if not already configured to respect user preferences
+  const currentLocale = process.env.LC_ALL || process.env.LANG || '';
+  if (!currentLocale.includes('UTF-8') && !currentLocale.includes('utf-8')) {
+    process.env.LC_ALL = 'en_US.UTF-8';
+    process.env.LANG = 'en_US.UTF-8';
+  }
+
   // Create screen
   screen = blessed.screen({
     smartCSR: true,
@@ -132,8 +140,8 @@ export function startInteractiveMode(): void {
     showProviderDetails(providers[0]);
   }
 
-  // Handle list selection (when using arrow keys)
-  (providerList as any).on('select', () => {
+  // Handle list selection (when using arrow keys) - use 'highlight' event for navigation
+  (providerList as any).on('highlight', () => {
     const selected = (providerList as any).selected;
     const providers = configStore.getProviders();
     if (providers[selected]) {
@@ -333,12 +341,12 @@ async function startAddProviderFlow(): Promise<void> {
   detailBox.hide();
   statusBar.hide();
 
-  // Create a simple form box in the center
+  // Create a compact form box in the center
   const formBox = blessed.box({
-    width: '80%',
-    height: '80%',
-    left: '10%',
-    top: '10%',
+    width: '60%',
+    height: '70%',
+    left: '20%',
+    top: '15%',
     border: { type: 'line' },
     style: {
       border: { fg: colors.primary }
@@ -348,8 +356,8 @@ async function startAddProviderFlow(): Promise<void> {
   const title = blessed.text({
     parent: formBox,
     top: 1,
-    left: 'center',
-    width: '100%',
+    left: 2,
+    width: 'shrink',
     content: '\x1b[1mAdd New Provider\x1b[0m',
     tags: true
   });
@@ -508,23 +516,24 @@ function promptFormInput(parent: any, message: string, defaultValue: string = ''
     const container = blessed.box({
       parent,
       top: 3,
-      left: 0,
-      width: '100%',
+      left: 1,
+      width: '98%',
       height: 5
     });
 
     const label = blessed.text({
       parent: container,
       top: 0,
-      left: 2,
+      left: 1,
+      width: '100%',
       content: message
     });
 
     const input = blessed.textbox({
       parent: container,
       top: 2,
-      left: 2,
-      width: '90%',
+      left: 1,
+      width: '96%',
       height: 1,
       value: defaultValue,
       style: {
@@ -537,7 +546,8 @@ function promptFormInput(parent: any, message: string, defaultValue: string = ''
     const hint = blessed.text({
       parent: container,
       top: 3,
-      left: 2,
+      left: 1,
+      width: '100%',
       content: 'Enter: OK  Esc: Cancel',
       style: { fg: 'gray' }
     });
@@ -545,9 +555,23 @@ function promptFormInput(parent: any, message: string, defaultValue: string = ''
     screen.render();
     input.focus();
 
+    // Error message element (hidden by default)
+    const errorMsg = blessed.text({
+      parent: container,
+      top: 4,
+      left: 1,
+      width: '100%',
+      content: '',
+      style: { fg: 'red', bold: true }
+    });
+
     input.on('submit', () => {
       const value = input.getValue().trim();
       if (required && !value) {
+        // Show error message and let user retry instead of hanging
+        errorMsg.setContent('This field is required. Please enter a value.');
+        screen.render();
+        input.focus();
         return;
       }
       container.destroy();
@@ -571,22 +595,24 @@ function promptFormConfirm(parent: any, message: string): Promise<boolean | null
     const container = blessed.box({
       parent,
       top: 3,
-      left: 0,
-      width: '100%',
+      left: 1,
+      width: '98%',
       height: 5
     });
 
     const label = blessed.text({
       parent: container,
       top: 0,
-      left: 2,
+      left: 1,
+      width: '100%',
       content: message
     });
 
     const hint = blessed.text({
       parent: container,
       top: 2,
-      left: 2,
+      left: 1,
+      width: '100%',
       content: '[y] Yes    [n] No    [Esc] Cancel',
       style: { fg: 'gray' }
     });
@@ -629,22 +655,23 @@ function promptFormList(parent: any, message: string, choices: { name: string; v
     const container = blessed.box({
       parent,
       top: 3,
-      left: 0,
-      width: '100%',
+      left: 1,
+      width: '98%',
       height: listHeight + 4
     });
 
     const label = blessed.text({
       parent: container,
       top: 0,
-      left: 2,
+      left: 1,
+      width: '100%',
       content: message
     });
 
     const list = blessed.list({
       parent: container,
       top: 1,
-      left: 2,
+      left: 1,
       width: '96%',
       height: listHeight,
       border: { type: 'line' },
