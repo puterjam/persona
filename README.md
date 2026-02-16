@@ -1,97 +1,94 @@
 # Persona
 
-A CLI tool to switch Claude CLI configurations between different model providers.
+AI Coding CLI Provider Manager
 
-## Features
+## Interface
 
-- Support for 20+ model providers
-- Interactive CLI with guided setup
-- TUI keyboard interaction mode
-- API connection testing with auto-endpoint detection
-- Configuration stored in `~/.persona/`
-- Claude settings written to `~/.claude/settings.json`
+![Interface](docs/screenshot.png)
+
+[中文文档](README.zh-CN.md) | [English Documentation](README.md) 
 
 ## Installation
 
-```bash
-git clone https://github.com/puterjam/persona.git
-cd persona
-npm install
-npm run build
-sudo npm link
-```
+Download the latest release from the [GitHub Releases](https://github.com/puterjam/persona/releases) page.
+
+### Supported Platforms
+
+| Platform | Architecture | File |
+|----------|-------------|------|
+| macOS | ARM64 (Apple Silicon) | `persona-{version}-bun-darwin-arm64` |
+| macOS | x64 (Intel) | `persona-{version}-bun-darwin-x64` |
+| Linux | x64 | `persona-{version}-bun-linux-x64` |
+| Linux | ARM64 | `persona-{version}-bun-linux-arm64` |
+| Windows | x64 | `persona-{version}-bun-windows-x64.exe` |
+
+Download the appropriate binary for your system, make it executable (Linux/macOS), and add it to your PATH.
 
 ## Usage
 
+### Interactive Mode
+
+Launch the interactive TUI:
+
 ```bash
-# List all configured providers
-persona list
-
-# Switch provider (interactive mode)
-persona switch
-
-# Switch to a specific provider
-persona switch <provider-id>
-
-# Reset to default (Anthropic official)
-persona switch --reset
-
-# Add a new provider (interactive)
-persona add
-
-# Add a provider using template
-persona add --template claude/minimax --api-key YOUR_API_KEY
-
-# Edit a provider
-persona edit <provider-id>
-
-# Delete a provider
-persona delete <provider-id>
-
-# Test API connection
-persona test [provider-id]
-
-# Show current status
-persona status
-
-# List available templates
-persona templates
-
-# Start interactive TUI mode
-persona interactive
-
-# Show help
-persona help
+persona
 ```
 
-## Available Templates
+**Keyboard Shortcuts:**
 
-### China Official
-- DeepSeek
-- Zhipu GLM
-- Aliyun Bailian
-- Kimi / Kimi for Coding
-- MiniMax
-- Doubao Seed
-- Xiaomi MiMo
+| Key | Action |
+|-----|--------|
+| ↑/↓ | Navigate provider list |
+| Enter | Switch to selected provider |
+| a | Add new provider |
+| e | Edit selected provider |
+| d | Delete selected provider |
+| p | Test ping selected provider |
+| c | Edit general config |
+| q | Quit |
 
-### Aggregator
-- ModelScope
-- SiliconFlow
-- OpenRouter
-- Nvidia NIM
+### Command Line Mode
 
-### International
-- Claude Official
-- OpenAI
-- Ollama (Local)
-- Cloudflare Workers AI
-- Groq
+#### List Providers
 
-## Configuration
+```bash
+persona ls
+```
 
-- User config: `~/.persona/config.json`
-- Claude settings: `~/.claude/settings.json`
+#### Add Provider
+
+```bash
+persona add
+```
+
+#### Switch Provider
+
+```bash
+persona use <provider-id>
+```
+
+#### Test Provider
+
+```bash
+persona ping <provider-id>
+```
+
+#### Remove Provider
+
+```bash
+persona rm <provider-id>
+```
+
+#### Edit Config
+
+```bash
+persona config
+```
+
+## Configuration Files
+
+- **Provider Config:** `~/.persona/config.json`
+- **General Config:** `~/.persona/general.json`
 
 ## License
 
