@@ -6,6 +6,8 @@ AI 编程 CLI Provider 管理工具
 
 ![界面](docs/screenshot.png)
 
+[中文文档](README.zh-CN.md) | [English Documentation](README.md)
+
 ## 安装
 
 从 [GitHub Releases](https://github.com/puterjam/persona/releases) 页面下载最新版本。
@@ -50,7 +52,7 @@ persona
 #### 查看 Providers
 
 ```bash
-persona list
+persona ls
 ```
 
 #### 新增 Provider
@@ -62,31 +64,30 @@ persona add
 #### 切换 Provider
 
 ```bash
-persona switch <provider-id>
+persona use <provider-id>
 ```
 
 #### 测试 Provider
 
 ```bash
-persona test <provider-id>
+persona ping <provider-id>
 ```
 
 #### 删除 Provider
 
 ```bash
-persona delete <provider-id>
+persona rm <provider-id>
 ```
 
 #### 编辑配置
 
 ```bash
-persona config edit
+persona config
 ```
 
 ## 配置文件
 
 - **Provider 配置：** `~/.persona/config.json`
-- **Claude 配置：** `~/.claude/settings.json`
 - **通用配置：** `~/.persona/general.json`
 
 ## 许可证
