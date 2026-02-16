@@ -28,7 +28,7 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        run: bun install --all
+        run: bun install --os=darwin
 
       - name: Get current version
         id: version
@@ -70,7 +70,7 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        run: bun install --all
+        run: bun install --os=linux
 
       - name: Get current version
         id: version
@@ -110,7 +110,7 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        run: bun install --all
+        run: bun install --os=win32
 
       - name: Get current version
         id: version
