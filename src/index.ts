@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 // Set UTF-8 locale for TUI Chinese character display
 process.env.LC_ALL = 'en_US.UTF-8';

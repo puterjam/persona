@@ -2,10 +2,11 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { Provider, PersonaConfig, ClaudeSettings } from '../types';
+import { Provider, PersonaConfig, ClaudeSettings, GeneralConfig } from '../types';
 
 const CONFIG_DIR = path.join(process.env.HOME || '/root', '.persona');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
+const GENERAL_CONFIG_FILE = path.join(CONFIG_DIR, 'general.json');
 const CLAUDE_SETTINGS_FILE = path.join(process.env.HOME || '/root', '.claude', 'settings.json');
 
 export class ConfigStore {
@@ -105,10 +106,21 @@ export class ConfigStore {
     }
   }
 
-  applyProviderToClaude(provider: Provider): void {
+  applyProviderToClaude(provider: Provider, updateClaude: boolean = false): void {
     const settings = this.getClaudeSettings();
     const env = settings.env || {};
 
+    // Apply general config first (lower priority)
+    const generalConfig = this.getGeneralConfig();
+    if (generalConfig.env) {
+      for (const [key, value] of Object.entries(generalConfig.env)) {
+        if (value !== '' && value !== undefined && value !== null) {
+          env[key] = value;
+        }
+      }
+    }
+
+    // Apply provider config (higher priority, can override general)
     // Set base URL
     env['ANTHROPIC_BASE_URL'] = provider.baseUrl;
 
@@ -136,6 +148,42 @@ export class ConfigStore {
     if (provider.extraEnv) {
       for (const [key, value] of Object.entries(provider.extraEnv)) {
         env[key] = value;
+      }
+    }
+
+    settings.env = env;
+
+    if (updateClaude) {
+      this.saveClaudeSettings(settings);
+    }
+  }
+
+  applyGeneralConfigOnly(): void {
+    const settings = this.getClaudeSettings();
+    const env = settings.env || {};
+
+    // Only apply general config, clear provider-specific keys
+    const keysToRemove = [
+      'ANTHROPIC_BASE_URL',
+      'ANTHROPIC_AUTH_TOKEN',
+      'ANTHROPIC_MODEL',
+      'ANTHROPIC_DEFAULT_HAIKU_MODEL',
+      'ANTHROPIC_DEFAULT_OPUS_MODEL',
+      'ANTHROPIC_DEFAULT_SONNET_MODEL',
+      'ANTHROPIC_API_FORMAT'
+    ];
+
+    for (const key of keysToRemove) {
+      delete env[key];
+    }
+
+    // Apply general config
+    const generalConfig = this.getGeneralConfig();
+    if (generalConfig.env) {
+      for (const [key, value] of Object.entries(generalConfig.env)) {
+        if (value !== '' && value !== undefined && value !== null) {
+          env[key] = value;
+        }
       }
     }
 
@@ -174,6 +222,35 @@ export class ConfigStore {
     // Clear active provider
     this.config.activeProvider = '';
     this.saveConfig();
+  }
+
+  // General config management
+  getGeneralConfig(): GeneralConfig {
+    try {
+      if (fs.existsSync(GENERAL_CONFIG_FILE)) {
+        const data = fs.readFileSync(GENERAL_CONFIG_FILE, 'utf-8');
+        return JSON.parse(data);
+      }
+    } catch (error) {
+      console.error('Failed to load general config:', error);
+    }
+    return { env: {} };
+  }
+
+  saveGeneralConfig(config: GeneralConfig): void {
+    try {
+      if (!fs.existsSync(CONFIG_DIR)) {
+        fs.mkdirSync(CONFIG_DIR, { recursive: true });
+      }
+      fs.writeFileSync(GENERAL_CONFIG_FILE, JSON.stringify(config, null, 2));
+    } catch (error) {
+      console.error('Failed to save general config:', error);
+      throw error;
+    }
+  }
+
+  getGeneralConfigPath(): string {
+    return GENERAL_CONFIG_FILE;
   }
 }
 

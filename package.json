@@ -1,32 +1,45 @@
 {
   "name": "persona",
-  "version": "0.1.0",
+  "version": "0.1.8",
   "description": "CLI tool to switch Claude CLI configurations between different model providers",
+  "type": "module",
   "main": "dist/index.js",
   "bin": {
     "persona": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts",
-    "link": "npm run build && sudo npm link"
+    "build": "bun run scripts/update-version.ts && bun build src/index.ts --outdir dist --target node",
+    "start": "bun run dist/index.js",
+    "dev": "bun run src/index.ts",
+    "link": "bun run scripts/update-version.ts && bun build src/index.ts --outdir dist --target node && sudo npm link"
   },
-  "keywords": ["claude", "cli", "model", "provider", "switch"],
+  "keywords": [
+    "claude",
+    "cli",
+    "model",
+    "provider",
+    "switch"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "chalk": "^4.1.2",
-    "inquirer": "^8.2.5",
-    "blessed": "^0.1.81",
+    "@opentui/core": "^0.1.79",
     "axios": "^1.6.0",
-    "conf": "^10.2.0"
+    "blessed": "^0.1.81",
+    "chalk": "^4.1.2",
+    "conf": "^10.2.0",
+    "inquirer": "^8.2.5"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
-    "@types/inquirer": "^8.2.10",
     "@types/blessed": "^0.1.19",
-    "typescript": "^5.3.0",
-    "ts-node": "^10.9.2"
+    "@types/inquirer": "^8.2.10",
+    "@types/node": "^20.10.0",
+    "release-it": "^19.2.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.0"
+  },
+  "packageManager": "pnpm@10.8.1+sha512.c50088ba998c67b8ca8c99df8a5e02fd2ae2e2b29aaf238feaa9e124248d3f48f9fb6db2424949ff901cffbb5e0f0cc1ad6aedb602cd29450751d11c35023677",
+  "optionalDependencies": {
+    "@opentui/core-darwin-arm64": "^0.1.79"
   }
 }

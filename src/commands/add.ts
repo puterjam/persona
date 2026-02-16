@@ -3,13 +3,39 @@
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { configStore } from '../config/store';
-import { getTemplateNames, getTemplateByFullName, getCategoryNames, getTemplatesByCategory } from '../config/templates';
-import { Provider, ProviderTemplate } from '../types';
+import { getTemplateNames, getTemplateByFullName } from '../config/templates';
+import { Provider } from '../types';
 import * as crypto from 'crypto';
 
-export async function addProviderInteractive(): Promise<void> {
-  const templateNames = getTemplateNames();
+export interface ProviderFormData {
+  name: string;
+  website: string;
+  baseUrl: string;
+  apiKey: string;
+  apiFormat: 'anthropic-messages' | 'openai-completions';
+  models: {
+    default?: string;
+    haiku?: string;
+    opus?: string;
+    sonnet?: string;
+  };
+}
 
+export interface ProviderFormDefaults {
+  name?: string;
+  website?: string;
+  baseUrl?: string;
+  apiFormat?: 'anthropic-messages' | 'openai-completions';
+  models?: {
+    default?: string;
+    haiku?: string;
+    opus?: string;
+    sonnet?: string;
+  };
+}
+
+// Step 1: Prompt for template selection (returns defaults if template selected)
+export async function promptForTemplate(): Promise<ProviderFormDefaults> {
   const { useTemplate } = await inquirer.prompt([
     {
       type: 'confirm',
@@ -19,55 +45,58 @@ export async function addProviderInteractive(): Promise<void> {
     }
   ]);
 
-  let template: ProviderTemplate | undefined;
-  let provider: Partial<Provider> = {
-    models: {}
-  };
-
-  if (useTemplate) {
-    const { selectedTemplate } = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'selectedTemplate',
-        message: 'Select a provider template:',
-        choices: templateNames.map(name => ({
-          name: `${getTemplateByFullName(name)?.name} - ${getTemplateByFullName(name)?.description}`,
-          value: name
-        }))
-      }
-    ]);
-
-    template = getTemplateByFullName(selectedTemplate);
-    if (template) {
-      provider = {
-        name: template.name,
-        website: template.website,
-        baseUrl: template.baseUrl,
-        apiFormat: template.apiFormat,
-        models: { ...template.defaultModels }
-      };
-    }
+  if (!useTemplate) {
+    return {};
   }
 
+  const templateNames = getTemplateNames();
+  const { selectedTemplate } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'selectedTemplate',
+      message: 'Select a provider template:',
+      choices: templateNames.map(name => ({
+        name: `${getTemplateByFullName(name)?.name} - ${getTemplateByFullName(name)?.description}`,
+        value: name
+      }))
+    }
+  ]);
+
+  const template = getTemplateByFullName(selectedTemplate);
+  if (template) {
+    return {
+      name: template.name,
+      website: template.website,
+      baseUrl: template.baseUrl,
+      apiFormat: template.apiFormat,
+      models: { ...template.defaultModels }
+    };
+  }
+
+  return {};
+}
+
+// Step 2: Prompt for provider details
+export async function promptForProviderDetails(defaults: ProviderFormDefaults = {}): Promise<ProviderFormData> {
   const answers = await inquirer.prompt([
     {
       type: 'input',
       name: 'name',
       message: 'Provider name:',
-      default: provider.name,
+      default: defaults.name,
       validate: (input) => input.length > 0 ? true : 'Name is required'
     },
     {
       type: 'input',
       name: 'website',
       message: 'Website URL:',
-      default: provider.website || 'https://example.com'
+      default: defaults.website || 'https://example.com'
     },
     {
       type: 'input',
       name: 'baseUrl',
       message: 'API Base URL:',
-      default: provider.baseUrl,
+      default: defaults.baseUrl,
       validate: (input) => input.length > 0 ? true : 'Base URL is required'
     },
     {
@@ -80,7 +109,7 @@ export async function addProviderInteractive(): Promise<void> {
       type: 'list',
       name: 'apiFormat',
       message: 'API Format:',
-      default: provider.apiFormat || 'anthropic-messages',
+      default: defaults.apiFormat || 'anthropic-messages',
       choices: [
         { name: 'Anthropic Messages API', value: 'anthropic-messages' },
         { name: 'OpenAI Chat Completions API', value: 'openai-completions' }
@@ -90,35 +119,34 @@ export async function addProviderInteractive(): Promise<void> {
       type: 'input',
       name: 'defaultModel',
       message: 'Default model name:',
-      default: provider.models?.default
+      default: defaults.models?.default
     },
     {
       type: 'input',
       name: 'haikuModel',
       message: 'Haiku model name (optional):',
-      default: provider.models?.haiku
+      default: defaults.models?.haiku
     },
     {
       type: 'input',
       name: 'opusModel',
       message: 'Opus model name (optional):',
-      default: provider.models?.opus
+      default: defaults.models?.opus
     },
     {
       type: 'input',
       name: 'sonnetModel',
       message: 'Sonnet model name (optional):',
-      default: provider.models?.sonnet
+      default: defaults.models?.sonnet
     }
   ]);
 
-  const newProvider: Provider = {
-    id: generateProviderId(answers.name),
+  return {
     name: answers.name,
     website: answers.website,
-    apiKey: answers.apiKey,
     baseUrl: answers.baseUrl,
-    apiFormat: answers.apiFormat as 'anthropic-messages' | 'openai-completions',
+    apiKey: answers.apiKey,
+    apiFormat: answers.apiFormat,
     models: {
       default: answers.defaultModel || undefined,
       haiku: answers.haikuModel || undefined,
@@ -126,11 +154,32 @@ export async function addProviderInteractive(): Promise<void> {
       sonnet: answers.sonnetModel || undefined
     }
   };
+}
+
+// Step 3: Save provider
+export function saveProvider(data: ProviderFormData): Provider {
+  const newProvider: Provider = {
+    id: generateProviderId(data.name),
+    name: data.name,
+    website: data.website,
+    apiKey: data.apiKey,
+    baseUrl: data.baseUrl,
+    apiFormat: data.apiFormat,
+    models: data.models
+  };
 
   configStore.addProvider(newProvider);
+  return newProvider;
+}
 
-  console.log(chalk.green(`\nProvider "${newProvider.name}" added successfully!`));
-  console.log(`Provider ID: ${newProvider.id}`);
+// Full interactive flow (for CLI)
+export async function addProviderInteractive(): Promise<void> {
+  const defaults = await promptForTemplate();
+  const data = await promptForProviderDetails(defaults);
+  const provider = saveProvider(data);
+
+  console.log(chalk.green(`\nProvider "${provider.name}" added successfully!`));
+  console.log(`Provider ID: ${provider.id}`);
 }
 
 export function addProviderFromArgs(args: {

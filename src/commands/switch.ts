@@ -61,7 +61,7 @@ export function resetToDefault(): void {
   }
 }
 
-export function switchProvider(providerId: string): void {
+export function switchProvider(providerId: string, updateClaude: boolean = true): void {
   const provider = configStore.getProvider(providerId);
 
   if (!provider) {
@@ -72,7 +72,7 @@ export function switchProvider(providerId: string): void {
 
   try {
     // Apply provider configuration to Claude settings
-    configStore.applyProviderToClaude(provider);
+    configStore.applyProviderToClaude(provider, updateClaude);
 
     // Set as active provider
     configStore.setActiveProvider(providerId);
@@ -92,6 +92,29 @@ export function switchProvider(providerId: string): void {
   }
 }
 
+export function updateClaudeConfig(): void {
+  const activeProvider = configStore.getActiveProvider();
+
+  if (!activeProvider) {
+    console.log(chalk.yellow('No active provider. Use "persona use <provider-id>" first.'));
+    return;
+  }
+
+  try {
+    // Re-apply provider + general config to Claude settings
+    configStore.applyProviderToClaude(activeProvider, true);
+
+    console.log(chalk.green(`\nSuccessfully updated Claude configuration.\n`));
+    console.log(chalk.bold('Applied:'));
+    console.log('  - General configuration');
+    console.log(`  - Provider: ${activeProvider.name}`);
+    console.log();
+    console.log(chalk.cyan('You may need to restart Claude CLI for changes to take effect.'));
+  } catch (error) {
+    console.log(chalk.red('Failed to update configuration:'), error);
+  }
+}
+
 function maskApiKey(key: string): string {
   if (key.length <= 8) return '********';
   return key.substring(0, 4) + '****' + key.substring(key.length - 4);
@@ -100,9 +123,11 @@ function maskApiKey(key: string): string {
 export function showStatus(): void {
   const activeProvider = configStore.getActiveProvider();
   const claudeSettings = configStore.getActiveClaudeSettings();
+  const generalConfig = configStore.getGeneralConfig();
 
-  console.log(chalk.bold('\nCurrent Status:\n'));
+  console.log(chalk.bold('\n=== Current Status ===\n'));
 
+  // Active Provider
   if (activeProvider) {
     console.log(chalk.green('Active Provider: ') + activeProvider.name);
     console.log(`  ID: ${activeProvider.id}`);
@@ -113,26 +138,38 @@ export function showStatus(): void {
     console.log(chalk.yellow('No active provider selected.'));
   }
 
-  console.log(chalk.bold('\nClaude Settings:'));
-  const importantKeys = [
-    'ANTHROPIC_AUTH_TOKEN',
-    'ANTHROPIC_BASE_URL',
-    'ANTHROPIC_MODEL',
-    'ANTHROPIC_DEFAULT_HAIKU_MODEL',
-    'ANTHROPIC_DEFAULT_OPUS_MODEL',
-    'ANTHROPIC_DEFAULT_SONNET_MODEL'
-  ];
-
-  importantKeys.forEach(key => {
-    const value = claudeSettings[key];
-    if (value) {
-      if (key === 'ANTHROPIC_AUTH_TOKEN') {
-        console.log(`  ${key}: ${maskApiKey(value)}`);
-      } else {
-        console.log(`  ${key}: ${value}`);
+  // General Config
+  console.log(chalk.bold('\n--- General Config ---'));
+  const generalEnv = generalConfig?.env || {};
+  if (Object.keys(generalEnv).length > 0) {
+    for (const [key, value] of Object.entries(generalEnv)) {
+      if (value) {
+        if (key.toLowerCase().includes('key') || key.toLowerCase().includes('token')) {
+          console.log(`  ${key}: ${maskApiKey(value)}`);
+        } else {
+          console.log(`  ${key}: ${value}`);
+        }
       }
     }
-  });
+  } else {
+    console.log(chalk.gray('  (none)'));
+  }
+
+  // Current Claude Settings
+  console.log(chalk.bold('\n--- Current Claude Settings ---'));
+  if (Object.keys(claudeSettings).length > 0) {
+    for (const [key, value] of Object.entries(claudeSettings)) {
+      if (value) {
+        if (key.toLowerCase().includes('key') || key.toLowerCase().includes('token')) {
+          console.log(`  ${key}: ${maskApiKey(value)}`);
+        } else {
+          console.log(`  ${key}: ${value}`);
+        }
+      }
+    }
+  } else {
+    console.log(chalk.gray('  (none)'));
+  }
 
   console.log();
 }

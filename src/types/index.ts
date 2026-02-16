@@ -19,9 +19,14 @@ export interface Provider {
   extraEnv?: Record<string, string>;
 }
 
+export interface GeneralConfig {
+  env: Record<string, string>;
+}
+
 export interface PersonaConfig {
   providers: Provider[];
   activeProvider: string;
+  generalConfig?: GeneralConfig;
 }
 
 export interface ClaudeSettings {

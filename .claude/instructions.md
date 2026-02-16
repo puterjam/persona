@@ -64,10 +64,3 @@ screen.on('mouse', (data: any) => {
   }
 });
 ```
-
-### 问题: 中文显示为 ????
-**解决**: 在程序入口 (index.ts) 设置 UTF-8 locale
-```typescript
-process.env.LC_ALL = 'en_US.UTF-8';
-process.env.LANG = 'en_US.UTF-8';
-```
