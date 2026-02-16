@@ -1,17 +1,17 @@
 {
   "name": "persona",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "CLI tool to switch Claude CLI configurations between different model providers",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/persona",
   "bin": {
-    "persona": "./dist/index.js"
+    "persona": "./dist/persona"
   },
   "scripts": {
-    "build": "bun run scripts/update-version.ts && bun build src/index.ts --outdir dist --target node",
+    "build": "bun run scripts/update-version.ts && bun build src/index.ts --compile --outfile ./dist/persona --target node",
     "start": "bun run dist/index.js",
     "dev": "bun run src/index.ts",
-    "link": "bun run scripts/update-version.ts && bun build src/index.ts --outdir dist --target node && sudo npm link"
+    "link": "bun run scripts/update-version.ts && bun build src/index.ts --compile --outfile ./dist/persona --target node && sudo npm link"
   },
   "keywords": [
     "claude",

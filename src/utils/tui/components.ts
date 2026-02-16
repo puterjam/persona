@@ -19,6 +19,8 @@ export const colors = {
   success: "#22c55e",
   error: "#ef4444",
   warning: "#f59e0b",
+  overlay: "#000000cc",
+  dialogText: "#ffffff",
 }
 
 export interface DialogOptions {
@@ -33,7 +35,7 @@ export function createDialogOverlay(renderer: CliRenderer): BoxRenderable {
     id: "dialog-overlay",
     width: "100%",
     height: "100%",
-    backgroundColor: "#000000cc",
+    backgroundColor: colors.overlay,
     position: "absolute",
     left: 0,
     top: 0,
@@ -67,7 +69,7 @@ export function createDialogBase(
 
   const titleText = new TextRenderable(renderer, {
     id: "dialog-title",
-    content: t`${bold(fg("#ffffff")(title))}`,
+    content: t`${bold(fg(colors.dialogText)(title))}`,
     width: dialogWidth - (padding * 2) - 10,
     position: "absolute",
     left: padding,
@@ -112,7 +114,7 @@ export function createButton(
   const textEl = new TextRenderable(renderer, {
     id: `button-text-${text.toLowerCase()}`,
     content: text,
-    fg: isSelected ? "#ffffff" : colors.text,
+    fg: isSelected ? colors.selectedText : colors.text,
     zIndex: 204,
   })
 
@@ -126,7 +128,7 @@ export function updateButtonStyle(
   isSelected: boolean
 ): void {
   container.backgroundColor = isSelected ? colors.selected : colors.bgLight
-  text.fg = isSelected ? "#ffffff" : colors.text
+  text.fg = isSelected ? colors.selectedText : colors.text
 }
 
 export function createHintText(

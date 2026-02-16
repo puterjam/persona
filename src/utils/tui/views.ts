@@ -322,7 +322,7 @@ function createStatusBar(): void {
 
 export function updateStatus(message: string): void {
   if (statusText) {
-    statusText.content = t`${fg("#ffffff")(message)}`
+    statusText.content = t`${fg(colors.textHighlight)(message)}`
   }
 }
 
