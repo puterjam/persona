@@ -161,12 +161,19 @@ export function startInteractiveMode(): void {
     }, 10);
   });
 
-  // Handle mouse click on list items
-  (providerList as any).on('select', () => {
-    const selected = (providerList as any).selected;
-    const providers = configStore.getProviders();
-    if (providers[selected]) {
-      showProviderDetails(providers[selected]);
+  // Handle mouse click on list - use mouseup event
+  screen.on('mouse', (data: any) => {
+    if (data.action === 'mouseup' && data.button === 'left') {
+      // Check if mouse is in list area (left 30% of screen)
+      if (data.x < 30) {
+        setTimeout(() => {
+          const selected = (providerList as any).selected;
+          const providers = configStore.getProviders();
+          if (providers[selected]) {
+            showProviderDetails(providers[selected]);
+          }
+        }, 10);
+      }
     }
   });
 
