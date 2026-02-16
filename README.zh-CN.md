@@ -1,97 +1,93 @@
 # Persona
 
-一个用于切换 Claude CLI 配置的 CLI 工具，支持在不同模型供应商之间切换。
+AI 编程 CLI Provider 管理工具
 
-## 功能特性
+## 界面
 
-- 支持 20+ 模型供应商
-- 交互式命令行引导
-- TUI 键盘交互模式
-- API 连接测试（自动端点检测）
-- 配置存储在 `~/.persona/`
-- Claude 配置写入 `~/.claude/settings.json`
+![界面](docs/screenshot.png)
 
 ## 安装
 
-```bash
-git clone https://github.com/puterjam/persona.git
-cd persona
-npm install
-npm run build
-sudo npm link
-```
+从 [GitHub Releases](https://github.com/puterjam/persona/releases) 页面下载最新版本。
+
+### 支持的平台
+
+| 平台 | 架构 | 文件名 |
+|------|------|--------|
+| macOS | ARM64 (Apple Silicon) | `persona-{version}-bun-darwin-arm64` |
+| macOS | x64 (Intel) | `persona-{version}-bun-darwin-x64` |
+| Linux | x64 | `persona-{version}-bun-linux-x64` |
+| Linux | ARM64 | `persona-{version}-bun-linux-arm64` |
+| Windows | x64 | `persona-{version}-bun-windows-x64.exe` |
+
+下载对应系统的可执行文件，在 Linux/macOS 上添加执行权限，并添加到 PATH。
 
 ## 使用方法
 
+### 交互模式
+
+启动交互式 TUI：
+
 ```bash
-# 列出所有已配置的供应商
-persona list
-
-# 切换供应商（交互模式）
-persona switch
-
-# 切换到指定供应商
-persona switch <供应商ID>
-
-# 重置为默认（Anthropic 官方）
-persona switch --reset
-
-# 添加新供应商（交互模式）
-persona add
-
-# 使用模板添加供应商
-persona add --template claude/minimax --api-key YOUR_API_KEY
-
-# 编辑供应商
-persona edit <供应商ID>
-
-# 删除供应商
-persona delete <供应商ID>
-
-# 测试 API 连接
-persona test [供应商ID]
-
-# 显示当前状态
-persona status
-
-# 列出可用模板
-persona templates
-
-# 启动交互式 TUI 模式
-persona interactive
-
-# 显示帮助
-persona help
+persona
 ```
 
-## 可用模板
+**快捷键：**
 
-### 国内官方
-- DeepSeek
-- 智谱 GLM
-- 阿里百炼
-- Kimi / Kimi for Coding
-- MiniMax
-- 字节豆包
-- 小米 MiMo
+| 按键 | 功能 |
+|------|------|
+| ↑/↓ | 浏览 provider 列表 |
+| Enter | 切换到选中的 provider |
+| a | 新增 provider |
+| e | 编辑选中的 provider |
+| d | 删除选中的 provider |
+| p | 测试 ping 选中的 provider |
+| c | 编辑通用配置 |
+| q | 退出 |
 
-### 聚合平台
-- ModelScope
-- SiliconFlow
-- OpenRouter
-- Nvidia NIM
+### 命令行模式
 
-### 国际
-- Claude 官方
-- OpenAI
-- Ollama（本地）
-- Cloudflare Workers AI
-- Groq
+#### 查看 Providers
 
-## 配置说明
+```bash
+persona list
+```
 
-- 用户配置：`~/.persona/config.json`
-- Claude 配置：`~/.claude/settings.json`
+#### 新增 Provider
+
+```bash
+persona add
+```
+
+#### 切换 Provider
+
+```bash
+persona switch <provider-id>
+```
+
+#### 测试 Provider
+
+```bash
+persona test <provider-id>
+```
+
+#### 删除 Provider
+
+```bash
+persona delete <provider-id>
+```
+
+#### 编辑配置
+
+```bash
+persona config edit
+```
+
+## 配置文件
+
+- **Provider 配置：** `~/.persona/config.json`
+- **Claude 配置：** `~/.claude/settings.json`
+- **通用配置：** `~/.persona/general.json`
 
 ## 许可证
 

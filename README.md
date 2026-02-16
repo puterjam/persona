@@ -6,6 +6,8 @@ AI Coding CLI Provider Manager
 
 ![Interface](docs/screenshot.png)
 
+[中文文档](README.zh-CN.md) | [English Documentation](README.md) 
+
 ## Installation
 
 Download the latest release from the [GitHub Releases](https://github.com/puterjam/persona/releases) page.
@@ -50,7 +52,7 @@ persona
 #### List Providers
 
 ```bash
-persona list
+persona ls
 ```
 
 #### Add Provider
@@ -62,31 +64,30 @@ persona add
 #### Switch Provider
 
 ```bash
-persona switch <provider-id>
+persona use <provider-id>
 ```
 
 #### Test Provider
 
 ```bash
-persona test <provider-id>
+persona ping <provider-id>
 ```
 
-#### Delete Provider
+#### Remove Provider
 
 ```bash
-persona delete <provider-id>
+persona rm <provider-id>
 ```
 
 #### Edit Config
 
 ```bash
-persona config edit
+persona config
 ```
 
 ## Configuration Files
 
 - **Provider Config:** `~/.persona/config.json`
-- **Claude Settings:** `~/.claude/settings.json`
 - **General Config:** `~/.persona/general.json`
 
 ## License

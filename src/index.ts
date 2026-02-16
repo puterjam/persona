@@ -18,43 +18,32 @@ import { editGeneralConfig, showGeneralConfig } from './commands/config';
 import { startInteractiveMode } from './utils/tui';
 
 const commands = {
-  list: {
-    aliases: ['ls'],
+  ls: {
     description: 'List all configured providers',
     usage: 'persona list'
   },
   use: {
-    aliases: ['switch', 'select'],
     description: 'Switch to a provider',
     usage: 'persona use <provider-id>'
   },
   add: {
-    aliases: ['create', 'new'],
     description: 'Add a new provider (interactive or with flags)',
     usage: 'persona add [--template <name>] [--name <name>] [--base-url <url>] [--api-key <key>] [--api-format <format>] [--default-model <model>] [--haiku-model <model>] [--opus-model <model>] [--sonnet-model <model>]'
   },
   edit: {
-    aliases: ['update', 'modify'],
     description: 'Edit an existing provider',
     usage: 'persona edit <provider-id> [--name <name>] [--base-url <url>] [--api-key <key>] [--api-format <format>]'
   },
   remove: {
-    aliases: ['delete', 'rm', 'del'],
+    aliases: ['rm', 'del'],
     description: 'Delete a provider',
     usage: 'persona remove <provider-id>'
   },
   ping: {
-    aliases: ['test', 'check'],
     description: 'Test provider API connection',
     usage: 'persona ping [provider-id]'
   },
-  interactive: {
-    aliases: ['i', 'tui'],
-    description: 'Start interactive TUI mode',
-    usage: 'persona interactive'
-  },
-  status: {
-    aliases: ['info', 'current'],
+  info: {
     description: 'Show current status',
     usage: 'persona status'
   },
@@ -81,7 +70,7 @@ function showHelp(command?: string): void {
     console.log(chalk.bold(`\nUsage: ${cmd.usage}\n`));
     console.log(`${cmd.description}\n`);
   } else {
-    console.log(chalk.bold('\nPersona - Claude CLI Provider Manager\n'));
+    console.log(chalk.bold('\nPersona - AI Coding CLI Provider Manager\n'));
     console.log('Usage: persona <command> [options]\n');
     console.log(chalk.bold('Commands:'));
 
@@ -96,7 +85,6 @@ function showHelp(command?: string): void {
     console.log('  persona use abc12345');
     console.log('  persona add --template openai --api-key sk-xxx');
     console.log('  persona ping');
-    console.log('  persona interactive');
     console.log();
   }
 }
