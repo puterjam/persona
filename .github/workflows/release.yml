@@ -43,15 +43,20 @@ jobs:
           bun build src/index.ts \
             --compile \
             --target=${{ matrix.target }} \
-            --outfile=dist/persona-${VERSION}-${{ matrix.target }}${{ matrix.ext }}
+            --outfile=dist/persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}
         env:
           CI: true
+
+      - name: Create zip
+        run: |
+          cd dist
+          zip persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}.zip persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: persona-${{ matrix.target }}
-          path: dist/persona-*-${{ matrix.target }}*
+          path: dist/persona-*-${{ matrix.target }}*.zip
 
   build-linux:
     runs-on: ubuntu-latest
@@ -87,15 +92,20 @@ jobs:
           bun build src/index.ts \
             --compile \
             --target=${{ matrix.target }} \
-            --outfile=dist/persona-${VERSION}-${{ matrix.target }}${{ matrix.ext }}
+            --outfile=dist/persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}
         env:
           CI: true
+
+      - name: Create zip
+        run: |
+          cd dist
+          zip persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}.zip persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: persona-${{ matrix.target }}
-          path: dist/persona-*-${{ matrix.target }}*
+          path: dist/persona-*-${{ matrix.target }}*.zip
 
   build-windows:
     runs-on: windows-latest
@@ -125,7 +135,7 @@ jobs:
 
       - name: Build for ${{ matrix.target }}
         run: |
-          bun build src/index.ts --compile --target=${{ matrix.target }} --outfile=dist/persona-$env:VERSION-${{ matrix.target }}${{ matrix.ext }}
+          bun build src/index.ts --compile --target=${{ matrix.target }} --outfile=dist/persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}
         env:
           CI: true
 
@@ -179,12 +189,3 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create tag
-        if: steps.tag_exists.outputs.exists == 'false'
-        run: |
-          TAG="v${{ steps.version.outputs.version }}"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a $TAG -m "Release $TAG"
-          git push origin master --tags
