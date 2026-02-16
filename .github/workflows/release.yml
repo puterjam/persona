@@ -120,15 +120,12 @@ jobs:
       - name: Get current version
         id: version
         run: |
-          VERSION=$(node -e "console.log(require('./package.json').version)")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          $VERSION = node -e "console.log(require('./package.json').version)"
+          echo "version=$VERSION" >> $env:GITHUB_OUTPUT
 
       - name: Build for ${{ matrix.target }}
         run: |
-          bun build src/index.ts `
-            --compile `
-            --target=${{ matrix.target }} `
-            --outfile=dist/persona-${VERSION}-${{ matrix.target }}${{ matrix.ext }}
+          bun build src/index.ts --compile --target=${{ matrix.target }} --outfile=dist/persona-$env:VERSION-${{ matrix.target }}${{ matrix.ext }}
         env:
           CI: true
 
