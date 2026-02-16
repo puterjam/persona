@@ -140,29 +140,25 @@ export function startInteractiveMode(): void {
     showProviderDetails(providers[0]);
   }
 
-  // Handle list navigation with arrow keys - show provider details on up/down
+  // Handle list navigation - let blessed handle up/down, just update details after
   screen.key('up', () => {
-    const current = (providerList as any).selected;
-    if (current > 0) {
-      providerList.up(1);
+    setTimeout(() => {
+      const selected = (providerList as any).selected;
       const providers = configStore.getProviders();
-      const newSelected = (providerList as any).selected;
-      if (providers[newSelected]) {
-        showProviderDetails(providers[newSelected]);
+      if (providers[selected]) {
+        showProviderDetails(providers[selected]);
       }
-    }
+    }, 10);
   });
 
   screen.key('down', () => {
-    const current = (providerList as any).selected;
-    const providers = configStore.getProviders();
-    if (current < providers.length - 1) {
-      providerList.down(1);
-      const newSelected = (providerList as any).selected;
-      if (providers[newSelected]) {
-        showProviderDetails(providers[newSelected]);
+    setTimeout(() => {
+      const selected = (providerList as any).selected;
+      const providers = configStore.getProviders();
+      if (providers[selected]) {
+        showProviderDetails(providers[selected]);
       }
-    }
+    }, 10);
   });
 
   // Handle mouse click on list items
