@@ -141,7 +141,7 @@ function createHeader(): void {
 
   headerText = new TextRenderable(renderer, {
     id: "header-subtitle",
-    content: t`${fg(colors.textMuted)("Claude CLI Provider Manager")}`,
+    content: t`${fg(colors.textMuted)("AI Coding CLI Provider Manager")}`,
     width: "100%",
     height: "100%",
     position: "absolute",
