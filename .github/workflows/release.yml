@@ -28,7 +28,7 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        run: bun install
+        run: bun install --all
 
       - name: Get current version
         id: version
@@ -70,7 +70,7 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        run: bun install
+        run: bun install --all
 
       - name: Get current version
         id: version
@@ -110,7 +110,7 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        run: bun install
+        run: bun install --all
 
       - name: Get current version
         id: version
