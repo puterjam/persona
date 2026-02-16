@@ -43,7 +43,7 @@ jobs:
           bun build src/index.ts \
             --compile \
             --target=${{ matrix.target }} \
-            --outfile=dist/persona-${VERSION}-${{ matrix.target }}${{ matrix.ext }}
+            --outfile=dist/persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}
         env:
           CI: true
 
@@ -87,7 +87,7 @@ jobs:
           bun build src/index.ts \
             --compile \
             --target=${{ matrix.target }} \
-            --outfile=dist/persona-${VERSION}-${{ matrix.target }}${{ matrix.ext }}
+            --outfile=dist/persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}
         env:
           CI: true
 
@@ -125,7 +125,7 @@ jobs:
 
       - name: Build for ${{ matrix.target }}
         run: |
-          bun build src/index.ts --compile --target=${{ matrix.target }} --outfile=dist/persona-$env:VERSION-${{ matrix.target }}${{ matrix.ext }}
+          bun build src/index.ts --compile --target=${{ matrix.target }} --outfile=dist/persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}
         env:
           CI: true
 
