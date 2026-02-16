@@ -47,11 +47,16 @@ jobs:
         env:
           CI: true
 
+      - name: Create zip
+        run: |
+          cd dist
+          zip persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}.zip persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: persona-${{ matrix.target }}
-          path: dist/persona-*-${{ matrix.target }}*
+          path: dist/persona-*-${{ matrix.target }}*.zip
 
   build-linux:
     runs-on: ubuntu-latest
@@ -91,11 +96,16 @@ jobs:
         env:
           CI: true
 
+      - name: Create zip
+        run: |
+          cd dist
+          zip persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}.zip persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: persona-${{ matrix.target }}
-          path: dist/persona-*-${{ matrix.target }}*
+          path: dist/persona-*-${{ matrix.target }}*.zip
 
   build-windows:
     runs-on: windows-latest
