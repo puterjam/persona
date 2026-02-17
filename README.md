@@ -44,7 +44,7 @@ persona
 | e | Edit selected provider |
 | d | Delete selected provider |
 | p | Test ping selected provider |
-| c | Edit general config |
+| r | Refresh provider list |
 | q | Quit |
 
 ### Command Line Mode
@@ -79,16 +79,48 @@ persona ping <provider-id>
 persona rm <provider-id>
 ```
 
-#### Edit Config
+#### Show Current Status
 
 ```bash
-persona config
+persona status
+```
+
+#### Theme Management
+
+```bash
+persona theme              # Show current theme
+persona theme list         # List available themes
+persona theme <name>       # Switch to a theme (persona, gruvbox, dracula, nord)
+```
+
+#### Environment Variables Override
+
+```bash
+persona env                # Show environment variable overrides
+persona env edit          # Edit environment variable overrides
+```
+
+#### Provider Templates
+
+```bash
+persona templates         # List available provider templates
 ```
 
 ## Configuration Files
 
 - **Provider Config:** `~/.persona/config.json`
 - **General Config:** `~/.persona/general.json`
+
+## Themes
+
+Persona supports multiple color themes. Available themes:
+
+| Theme | Description |
+|-------|-------------|
+| persona | Default dark theme |
+| gruvbox | Vintage/gruvbox color scheme |
+| dracula | Popular purple dark theme |
+| nord | Arctic, north-bluish color palette |
 
 ## License
 

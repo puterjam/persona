@@ -1,0 +1,22 @@
+{
+  "name": "Persona Dark",
+  "description": "Default Persona dark theme",
+  "type": "dark",
+  "colors": {
+    "primary": "#0b0b0b",
+    "primaryLight": "#488ee4",
+    "text": "#e2e8f0",
+    "textMuted": "#797979",
+    "textHighlight": "#ffffff",
+    "bg": "#0b0b0b",
+    "bgLight": "#141414",
+    "border": "#484848",
+    "selected": "#3b82f6",
+    "selectedText": "#ffffff",
+    "success": "#22c55e",
+    "error": "#ef4444",
+    "warning": "#f59e0b",
+    "overlay": "#000000cc",
+    "dialogText": "#ffffff"
+  }
+}

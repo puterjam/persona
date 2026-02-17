@@ -1,15 +1,11 @@
-// Config command - edit general configuration
-
 import chalk from 'chalk';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
-import * as os from 'os';
 import { configStore } from '../config/store';
 import { GeneralConfig } from '../types';
 import { maskApiKey } from '../utils/mask';
-import { getThemeNames, loadTheme } from '../utils/theme';
 
-const DEFAULT_CONFIG = `{
+const DEFAULT_ENV_CONFIG = `{
   "CLAUDE_API_KEY": "",
   "ANTHROPIC_PROJECT_ID": "",
   "ANTHROPIC_ORGANIZATION_ID": "",
@@ -17,10 +13,8 @@ const DEFAULT_CONFIG = `{
 }`;
 
 function detectEditor(): string {
-  // Check if running in desktop environment (has DISPLAY or WAYLAND_DISPLAY)
   const hasDisplay = process.env.DISPLAY || process.env.WAYLAND_DISPLAY;
 
-  // Check for VS Code
   const vscodePaths = [
     'code',
     '/usr/local/bin/code',
@@ -40,7 +34,6 @@ function detectEditor(): string {
     }
   }
 
-  // Default to vim/nano
   try {
     execSync('which vim', { stdio: 'ignore' });
     return 'vim';
@@ -50,7 +43,6 @@ function detectEditor(): string {
 }
 
 function openInEditor(filePath: string, content: string): void {
-  // Ensure file exists with default content
   if (!fs.existsSync(filePath)) {
     fs.writeFileSync(filePath, content);
   }
@@ -78,50 +70,14 @@ function validateConfig(content: string): { valid: boolean; config?: GeneralConf
   }
 }
 
-export function editGeneralConfig(): void {
-  const configPath = configStore.getGeneralConfigPath();
-
-  // Show current config if exists
-  const currentConfig = configStore.getGeneralConfig();
-  let initialContent = DEFAULT_CONFIG;
-
-  if (currentConfig && Object.keys(currentConfig).length > 0) {
-    initialContent = JSON.stringify(currentConfig, null, 2);
-  }
-
-  console.log(chalk.bold('\nGeneral Configuration Editor\n'));
-  console.log('This configuration will be merged with provider config on activation.');
-  console.log('Provider config has higher priority and can override these values.\n');
-
-  // Open editor
-  openInEditor(configPath, initialContent);
-
-  // Validate after editing
-  try {
-    const content = fs.readFileSync(configPath, 'utf-8');
-    const result = validateConfig(content);
-
-    if (!result.valid) {
-      console.log(chalk.red(`\nInvalid configuration: ${result.error}`));
-      console.log(chalk.yellow('Keeping previous configuration.'));
-      return;
-    }
-
-    configStore.saveGeneralConfig(result.config!);
-    console.log(chalk.green('\nConfiguration saved successfully.\n'));
-  } catch (error) {
-    console.log(chalk.red('Failed to read configuration:', error));
-  }
-}
-
-export function showGeneralConfig(): void {
+export function showEnvConfig(): void {
   const config = configStore.getGeneralConfig();
 
-  console.log(chalk.bold('\nGeneral Configuration:\n'));
+  console.log(chalk.bold('\nEnvironment Variables Override:\n'));
 
   if (!config || Object.keys(config).length === 0) {
-    console.log(chalk.yellow('No general configuration set.'));
-    console.log('Run "persona config edit" to add general settings.\n');
+    console.log(chalk.yellow('No environment variables configured.'));
+    console.log('Run "persona env edit" to add overrides.\n');
     return;
   }
 
@@ -148,37 +104,35 @@ export function showGeneralConfig(): void {
   console.log();
 }
 
-export function showThemeConfig(): void {
-  const currentTheme = configStore.getTheme();
-  const themeNames = getThemeNames();
+export function editEnvConfig(): void {
+  const configPath = configStore.getGeneralConfigPath();
 
-  console.log(chalk.bold('\nTheme Configuration:\n'));
-  console.log(`Current theme: ${chalk.cyan(currentTheme)}`);
-  console.log(chalk.bold('\nAvailable themes:'));
-  
-  for (const name of themeNames) {
-    const marker = name === currentTheme ? ' ✓' : '';
-    console.log(`  ${name}${marker}`);
-  }
-  console.log();
-  console.log('Use "persona config theme <name>" to switch theme.\n');
-}
+  const currentConfig = configStore.getGeneralConfig();
+  let initialContent = DEFAULT_ENV_CONFIG;
 
-export function setTheme(themeName: string): void {
-  const themeNames = getThemeNames();
-  
-  if (!themeNames.includes(themeName)) {
-    console.log(chalk.red(`Theme "${themeName}" not found.`));
-    console.log(chalk.yellow(`Available themes: ${themeNames.join(', ')}`));
-    return;
+  if (currentConfig && Object.keys(currentConfig).length > 0) {
+    initialContent = JSON.stringify(currentConfig, null, 2);
   }
 
-  const colors = loadTheme(themeName);
-  if (!colors) {
-    console.log(chalk.red(`Failed to load theme "${themeName}".`));
-    return;
-  }
+  console.log(chalk.bold('\nEnvironment Variables Override Editor\n'));
+  console.log('These variables will be merged with provider config on activation.');
+  console.log('Provider config has higher priority and can override these values.\n');
 
-  configStore.setTheme(themeName);
-  console.log(chalk.green(`\nTheme "${themeName}" applied successfully!\n`));
+  openInEditor(configPath, initialContent);
+
+  try {
+    const content = fs.readFileSync(configPath, 'utf-8');
+    const result = validateConfig(content);
+
+    if (!result.valid) {
+      console.log(chalk.red(`\nInvalid configuration: ${result.error}`));
+      console.log(chalk.yellow('Keeping previous configuration.'));
+      return;
+    }
+
+    configStore.saveGeneralConfig(result.config!);
+    console.log(chalk.green('\nConfiguration saved successfully.\n'));
+  } catch (error) {
+    console.log(chalk.red('Failed to read configuration:', error));
+  }
 }

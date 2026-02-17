@@ -15,9 +15,10 @@ import {
   createButton,
   updateButtonStyle,
   createHintText,
-  colors,
+  getColors,
 } from "./components"
 import { blurProviderSelect, focusProviderSelect } from "./views"
+import { layout } from "../theme"
 
 let currentDialog: { isOpen: boolean; close: () => void } | null = null
 let isInputMode = false
@@ -39,14 +40,13 @@ export async function showConfirmDialog(
   title: string,
   message: string
 ): Promise<boolean> {
-  console.log('[DEBUG] showConfirmDialog called:', title, message)
   return new Promise((resolve) => {
     if (!renderer) {
       resolve(false)
       return
     }
 
-    const dialogWidth = 50
+    const dialogWidth = layout.dialogMinWidth
     const dialogHeight = 9
     const padding = 2
 
@@ -73,7 +73,7 @@ export async function showConfirmDialog(
       id: "button-container",
       width: dialogWidth - padding * 2,
       height: 1,
-      backgroundColor: colors.bgLight,
+      backgroundColor: getColors().bgLight,
       flexDirection: "row",
       justifyContent: "center",
       gap: 4,
@@ -118,7 +118,6 @@ export async function showConfirmDialog(
     }
 
     isInputMode = true
-    console.log('[DEBUG] showConfirmDialog: isInputMode set to true')
     blurProviderSelect()
 
     const keyHandler = (k: any) => {
@@ -153,7 +152,7 @@ export async function showInputDialog(
       return
     }
 
-    const dialogWidth = 60
+    const dialogWidth = layout.dialogMaxWidth
     const dialogHeight = 9
     const padding = 2
 
@@ -184,7 +183,7 @@ export async function showInputDialog(
       left: padding,
       top: contentTop,
       zIndex: 202,
-      focusedBackgroundColor: colors.bg,
+      focusedBackgroundColor: getColors().bg,
     })
 
     const hintText = createHintText(
@@ -253,7 +252,7 @@ export async function showListDialog(
 
     const listHeight = Math.min(choices.length + 2, 10)
     const dialogHeight = listHeight + 6
-    const dialogWidth = 60
+    const dialogWidth = layout.dialogMaxWidth
     const padding = 2
 
     const overlay = createDialogOverlay(renderer)
@@ -285,12 +284,12 @@ export async function showListDialog(
       position: "absolute",
       left: padding,
       top: contentTop -1,
-      backgroundColor: colors.bgLight,
-      focusedBackgroundColor: colors.bgLight,
-      textColor: colors.text,
-      focusedTextColor: colors.text,
-      selectedBackgroundColor: colors.selected,
-      selectedTextColor: colors.selectedText,
+      backgroundColor: getColors().bgLight,
+      focusedBackgroundColor: getColors().bgLight,
+      textColor: getColors().text,
+      focusedTextColor: getColors().text,
+      selectedBackgroundColor: getColors().selected,
+      selectedTextColor: getColors().selectedText,
       showDescription: false,
       showScrollIndicator: false,
       wrapSelection: false,

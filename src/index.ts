@@ -15,6 +15,8 @@ import { editProviderInteractive, editProviderFromArgs } from './commands/edit';
 import { deleteProviderInteractive, deleteProvider } from './commands/delete';
 import { testProviderInteractive, testProviderById } from './commands/test';
 import { editGeneralConfig, showGeneralConfig } from './commands/config';
+import { showTheme, listThemes, setTheme } from './commands/theme';
+import { showEnvConfig, editEnvConfig } from './commands/env';
 import { startInteractiveMode } from './utils/tui';
 
 const commands = {
@@ -52,10 +54,13 @@ const commands = {
     description: 'List available provider templates',
     usage: 'persona templates'
   },
-  config: {
-    aliases: ['cfg'],
-    description: 'Edit general configuration (env vars merged with provider)',
-    usage: 'persona config [edit|show]'
+  theme: {
+    description: 'Manage themes (list, show, set)',
+    usage: 'persona theme [list|<name>]'
+  },
+  env: {
+    description: 'Manage environment variable overrides',
+    usage: 'persona env [edit|show]'
   },
   help: {
     aliases: ['h', '?'],
@@ -102,23 +107,13 @@ async function main(): Promise<void> {
   // Handle aliases
   const aliasMap: Record<string, string> = {
     ls: 'list',
-    switch: 'use',
-    select: 'use',
-    create: 'add',
     new: 'add',
-    update: 'edit',
-    modify: 'edit',
     delete: 'remove',
     rm: 'remove',
     del: 'remove',
-    test: 'ping',
-    check: 'ping',
-    i: 'interactive',
-    tui: 'interactive',
     info: 'status',
     current: 'status',
     template: 'templates',
-    cfg: 'config',
     h: 'help',
     '?': 'help'
   };
@@ -286,15 +281,27 @@ async function main(): Promise<void> {
         break;
       }
 
-      case 'config': {
-        const subCommand = args[1];
-        if (subCommand === 'edit' || !subCommand) {
-          editGeneralConfig();
-        } else if (subCommand === 'show') {
-          showGeneralConfig();
+      case 'theme': {
+        const themeCommand = args[1];
+        if (themeCommand === 'list') {
+          listThemes();
+        } else if (themeCommand) {
+          setTheme(themeCommand);
         } else {
-          console.log(chalk.red(`Unknown config subcommand: ${subCommand}`));
-          console.log(chalk.yellow('Usage: persona config [edit|show]'));
+          showTheme();
+        }
+        break;
+      }
+
+      case 'env': {
+        const subCommand = args[1];
+        if (subCommand === 'edit') {
+          editEnvConfig();
+        } else if (subCommand === 'show' || !subCommand) {
+          showEnvConfig();
+        } else {
+          console.log(chalk.red(`Unknown env subcommand: ${subCommand}`));
+          console.log(chalk.yellow('Usage: persona env [edit|show]'));
           process.exit(1);
         }
         break;

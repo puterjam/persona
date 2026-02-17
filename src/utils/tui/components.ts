@@ -4,23 +4,10 @@ import {
   type CliRenderer,
 } from "@opentui/core"
 import { t, bold, fg } from "@opentui/core"
+import { getThemeColors } from "../theme"
 
-export const colors = {
-  primary: "#0b0b0b",
-  primaryLight: "#488ee4",
-  text: "#e2e8f0",
-  textMuted: "#797979",
-  textHighlight: "#ffffff", 
-  bg: "#0b0b0b",
-  bgLight: "#141414",
-  border: "#484848",
-  selected: "#3b82f6",
-  selectedText: "#ffffff",
-  success: "#22c55e",
-  error: "#ef4444",
-  warning: "#f59e0b",
-  overlay: "#000000cc",
-  dialogText: "#ffffff",
+export function getColors() {
+  return getThemeColors()
 }
 
 export interface DialogOptions {
@@ -35,7 +22,7 @@ export function createDialogOverlay(renderer: CliRenderer): BoxRenderable {
     id: "dialog-overlay",
     width: "100%",
     height: "100%",
-    backgroundColor: colors.overlay,
+    backgroundColor: getColors().overlay,
     position: "absolute",
     left: 0,
     top: 0,
@@ -61,7 +48,7 @@ export function createDialogBase(
     position: "absolute",
     left: dialogLeft,
     top: dialogTop,
-    backgroundColor: colors.bgLight,
+    backgroundColor: getColors().bgLight,
     shouldFill: true,
     padding: padding,
     zIndex: 201,
@@ -69,7 +56,7 @@ export function createDialogBase(
 
   const titleText = new TextRenderable(renderer, {
     id: "dialog-title",
-    content: t`${bold(fg(colors.dialogText)(title))}`,
+    content: t`${bold(fg(getColors().dialogText)(title))}`,
     width: dialogWidth - (padding * 2) - 10,
     position: "absolute",
     left: padding,
@@ -79,7 +66,7 @@ export function createDialogBase(
 
   const escHint = new TextRenderable(renderer, {
     id: "dialog-esc-hint",
-    content: t`${fg(colors.textMuted)("Esc")}`,
+    content: t`${fg(getColors().textMuted)("Esc")}`,
     width: 10,
     position: "absolute",
     right: padding-6,
@@ -103,7 +90,7 @@ export function createButton(
     id: `button-${text.toLowerCase()}`,
     width,
     height: 1,
-    backgroundColor: isSelected ? colors.selected : colors.bgLight,
+    backgroundColor: isSelected ? getColors().selected : getColors().bgLight,
     shouldFill: true,
     zIndex: 203,
     flexDirection: "row",
@@ -114,7 +101,7 @@ export function createButton(
   const textEl = new TextRenderable(renderer, {
     id: `button-text-${text.toLowerCase()}`,
     content: text,
-    fg: isSelected ? colors.selectedText : colors.text,
+    fg: isSelected ? getColors().selectedText : getColors().text,
     zIndex: 204,
   })
 
@@ -127,8 +114,8 @@ export function updateButtonStyle(
   text: TextRenderable,
   isSelected: boolean
 ): void {
-  container.backgroundColor = isSelected ? colors.selected : colors.bgLight
-  text.fg = isSelected ? colors.selectedText : colors.text
+  container.backgroundColor = isSelected ? getColors().selected : getColors().bgLight
+  text.fg = isSelected ? getColors().selectedText : getColors().text
 }
 
 export function createHintText(
@@ -162,7 +149,7 @@ export function createHintText(
         const plainText = content.slice(lastEnd, idx)
         const textEl = new TextRenderable(renderer, {
           content: plainText,
-          fg: colors.textMuted,
+          fg: getColors().textMuted,
         })
         container.add(textEl)
         left += plainText.length
@@ -170,7 +157,7 @@ export function createHintText(
       
       const textEl = new TextRenderable(renderer, {
         content: key,
-        fg: colors.textHighlight,
+        fg: getColors().textHighlight,
       })
       container.add(textEl)
       left += key.length
@@ -181,7 +168,7 @@ export function createHintText(
   if (lastEnd < content.length) {
     const textEl = new TextRenderable(renderer, {
       content: content.slice(lastEnd),
-      fg: colors.textMuted,
+      fg: getColors().textMuted,
     })
     container.add(textEl)
   }

@@ -20,17 +20,19 @@ export interface Provider {
 }
 
 export interface GeneralConfig {
-  env: Record<string, string>;
+  [key: string]: string | undefined;
 }
 
 export interface PersonaConfig {
   providers: Provider[];
   activeProvider: string;
   generalConfig?: GeneralConfig;
+  theme?: string;
 }
 
 export interface ClaudeSettings {
   env: Record<string, string>;
+  [key: string]: any;
 }
 
 export type ApiFormat = 'anthropic-messages' | 'openai-completions';

@@ -15,8 +15,12 @@ import {
 } from "@opentui/core"
 import { Provider } from "../../types"
 import { configStore } from "../../config/store"
-import { colors } from "./components"
+import { getThemeColors, layout } from "../theme"
 import { VERSION } from "../../version"
+
+function getColors() {
+  return getThemeColors()
+}
 
 let renderer: CliRenderer | null = null
 let providerSelect: SelectRenderable | null = null
@@ -56,13 +60,13 @@ export async function initViews(): Promise<CliRenderer> {
     exitOnCtrlC: true,
     consoleOptions: {
       position: ConsolePosition.TOP,
-      sizePercent: 20,
+      sizePercent: layout.consoleHeightPercent,
       startInDebugMode: false,
       zIndex: 2000,
     }
   })
 
-  renderer.setBackgroundColor(colors.bg)
+  renderer.setBackgroundColor(getColors().bg)
 
   createMainContainer()
   createHeader()
@@ -132,7 +136,7 @@ function createHeader(): void {
     id: "header-title",
     text: "Persona",
     font: "tiny",
-    color: colors.textMuted,
+    color: getColors().textMuted,
     position: "absolute",
     top: 2,
     left: 3,
@@ -141,7 +145,7 @@ function createHeader(): void {
 
   headerText = new TextRenderable(renderer, {
     id: "header-subtitle",
-    content: t`${fg(colors.textMuted)("AI Coding CLI Provider Manager")}`,
+    content: t`${fg(getColors().textMuted)("AI Coding CLI Provider Manager")}`,
     width: "100%",
     height: "100%",
     position: "absolute",
@@ -154,7 +158,7 @@ function createHeader(): void {
     id: "header-bg",
     width: "100%",
     height: 5,
-    backgroundColor: colors.primary,
+    backgroundColor: getColors().primary,
     position: "absolute",
     left: 0,
     top: 0,
@@ -173,7 +177,7 @@ function createProviderList(): void {
     id: "list-container",
     width: "30%",
     height: "100%",
-    backgroundColor: colors.bgLight,
+    backgroundColor: getColors().bgLight,
     paddingTop: 1,
     paddingBottom: 1,
     paddingLeft: 2,
@@ -182,7 +186,7 @@ function createProviderList(): void {
     flexShrink: 0,
     
     border:["right"],
-    borderColor: colors.border,
+    borderColor: getColors().border,
     borderStyle: "heavy",
   })
 
@@ -190,13 +194,13 @@ function createProviderList(): void {
     id: "provider-list",
     width: "100%",
     height: "100%",
-    textColor: colors.text,
+    textColor: getColors().text,
     backgroundColor: "transparent",
     focusedBackgroundColor: "transparent",
-    focusedTextColor: colors.text,
-    selectedBackgroundColor: colors.selected,
-    selectedTextColor: colors.selectedText,
-    descriptionColor: colors.textMuted,
+    focusedTextColor: getColors().text,
+    selectedBackgroundColor: getColors().selected,
+    selectedTextColor: getColors().selectedText,
+    descriptionColor: getColors().textMuted,
     showDescription: true,
     showScrollIndicator: true,
     wrapSelection: false,
@@ -207,10 +211,20 @@ function createProviderList(): void {
 
   providerSelect.on(SelectRenderableEvents.SELECTION_CHANGED, (index: number, option: SelectOption) => {
     const providers = configStore.getProviders()
+    const activeProvider = configStore.getActiveProvider()
     if (index === 0) {
       showDefaultDetails()
+      if (listContainer) {
+        listContainer.borderColor = getColors().border
+        listContainer.requestRender()
+      }
     } else if (providers[index - 1]) {
       showProviderDetails(providers[index - 1])
+      const isActive = activeProvider?.id === providers[index - 1].id
+      if (listContainer) {
+        listContainer.borderColor = isActive ? getColors().primaryLight : getColors().border
+        listContainer.requestRender()
+      }
     }
   })
 
@@ -240,7 +254,7 @@ function createDetailPanel(): void {
     id: "detail-container",
     width: "80%",
     height: "100%",
-    backgroundColor: colors.bg,
+    backgroundColor: getColors().bg,
     flexGrow: 1,
     padding: 2,
     paddingLeft: 2+3
@@ -264,7 +278,7 @@ function createStatusBar(): void {
     id: "status-bg",
     width: "100%",
     height: 3,
-    backgroundColor: colors.primary,
+    backgroundColor: getColors().primary,
     position: "absolute",
     left: 0,
     bottom: 0,
@@ -280,7 +294,7 @@ function createStatusBar(): void {
     bottom: 0,
     zIndex: 100,
     flexDirection: "row",
-    backgroundColor: colors.primary,
+    backgroundColor: getColors().primary,
   })
 
   const items = [
@@ -301,7 +315,7 @@ function createStatusBar(): void {
   for (const item of items) {
     const textEl = new TextRenderable(renderer, {
       content: item.text,
-      fg: item.highlight ? colors.textHighlight : colors.textMuted,
+      fg: item.highlight ? getColors().textHighlight : getColors().textMuted,
     })
     statusContainer.add(textEl)
   }
@@ -309,7 +323,7 @@ function createStatusBar(): void {
   const versionText = new TextRenderable(renderer, {
     id: "version",
     content: `v${VERSION}`,
-    fg: colors.textMuted,
+    fg: getColors().textMuted,
     position: "absolute",
     right: 7,
     zIndex: 101,
@@ -322,7 +336,7 @@ function createStatusBar(): void {
 
 export function updateStatus(message: string): void {
   if (statusText) {
-    statusText.content = t`${fg(colors.textHighlight)(message)}`
+    statusText.content = t`${fg(getColors().textHighlight)(message)}`
   }
 }
 
@@ -363,7 +377,7 @@ export function refreshProviderList(): void {
 
 function showNoProvidersMessage(): void {
   if (detailText) {
-    detailText.content = t`${fg(colors.textMuted)("No providers available. Press [a] to add a new provider.")}`
+    detailText.content = t`${fg(getColors().textMuted)("No providers available. Press [a] to add a new provider.")}`
   }
 }
 
@@ -371,12 +385,12 @@ function showDefaultDetails(): void {
   if (detailText) {
     const activeProvider = configStore.getActiveProvider()
     const isDefaultActive = !activeProvider
-    detailText.content = t`${bold(fg(colors.primaryLight)("Default (Official)"))}
+    detailText.content = t`${bold(fg(getColors().primaryLight)("Default (Official)"))}
 
-${fg(colors.textMuted)("Restore the official Anthropic configuration.")}
-${fg(colors.textMuted)("This will clear all custom provider settings.")}
+${fg(getColors().textMuted)("Restore the official Anthropic configuration.")}
+${fg(getColors().textMuted)("This will clear all custom provider settings.")}
 
-${fg(colors.success)(isDefaultActive ? "✓ Active" : "")}
+${fg(getColors().success)(isDefaultActive ? "✓ Active" : "")}
 `
   }
 }
@@ -400,12 +414,12 @@ function buildDefaultContent(extra?: string): any {
   const activeProvider = configStore.getActiveProvider()
   const isDefaultActive = !activeProvider
 
-  return t`${bold(fg(colors.primaryLight)("Default (Official)"))}
+  return t`${bold(fg(getColors().primaryLight)("Default (Official)"))}
 
-${fg(colors.textMuted)("Restore the official Anthropic configuration.")}
-${fg(colors.textMuted)("This will clear all custom provider settings.")}
+${fg(getColors().textMuted)("Restore the official Anthropic configuration.")}
+${fg(getColors().textMuted)("This will clear all custom provider settings.")}
 
-${fg(colors.success)(extra || (isDefaultActive ? "✓ Active" : ""))}
+${fg(getColors().success)(extra || (isDefaultActive ? "✓ Active" : ""))}
 `
 }
 
@@ -413,26 +427,26 @@ function buildProviderDetailsContent(provider: Provider, extra?: string): any {
   const activeProvider = configStore.getActiveProvider()
   const isActive = activeProvider?.id === provider.id
 
-  const defaultModel = provider.models.default || t`${fg(colors.textMuted)("(not set)")}`
-  const haikuModel = provider.models.haiku || t`${fg(colors.textMuted)("(not set)")}`
-  const opusModel = provider.models.opus || t`${fg(colors.textMuted)("(not set)")}`
-  const sonnetModel = provider.models.sonnet || t`${fg(colors.textMuted)("(not set)")}`
+  const defaultModel = provider.models.default || t`${fg(getColors().textMuted)("(not set)")}`
+  const haikuModel = provider.models.haiku || t`${fg(getColors().textMuted)("(not set)")}`
+  const opusModel = provider.models.opus || t`${fg(getColors().textMuted)("(not set)")}`
+  const sonnetModel = provider.models.sonnet || t`${fg(getColors().textMuted)("(not set)")}`
 
   let content: any = ""
 
 
-content = t`${bold(fg(colors.primaryLight)("Name:"))}     ${provider.name}
-${bold(fg(colors.primaryLight)("Website:"))}  ${provider.website}
-${bold(fg(colors.primaryLight)("API URL:"))}  ${provider.baseUrl}
-${bold(fg(colors.primaryLight)("Format:"))}   ${provider.apiFormat}
+content = t`${bold(fg(getColors().primaryLight)("Name:"))}     ${provider.name}
+${bold(fg(getColors().primaryLight)("Website:"))}  ${provider.website}
+${bold(fg(getColors().primaryLight)("API URL:"))}  ${provider.baseUrl}
+${bold(fg(getColors().primaryLight)("Format:"))}   ${provider.apiFormat}
 
-${bold(fg(colors.primaryLight)("Models:"))}
-  ${fg(colors.textMuted)("Default:")} ${defaultModel}
-  ${fg(colors.textMuted)("Haiku:")}   ${haikuModel}
-  ${fg(colors.textMuted)("Opus:")}    ${opusModel}
-  ${fg(colors.textMuted)("Sonnet:")}  ${sonnetModel}
+${bold(fg(getColors().primaryLight)("Models:"))}
+  ${fg(getColors().textMuted)("Default:")} ${defaultModel}
+  ${fg(getColors().textMuted)("Haiku:")}   ${haikuModel}
+  ${fg(getColors().textMuted)("Opus:")}    ${opusModel}
+  ${fg(getColors().textMuted)("Sonnet:")}  ${sonnetModel}
 
-${fg(colors.success)(extra || (isActive ? "✓ Active" : ""))}
+${fg(getColors().success)(extra || (isActive ? "✓ Active" : ""))}
 `
 
   return content

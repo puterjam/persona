@@ -1,0 +1,22 @@
+{
+  "name": "Nord",
+  "description": "Arctic, north-bluish color palette",
+  "type": "dark",
+  "colors": {
+    "primary": "#2e3440",
+    "primaryLight": "#88c0d0",
+    "text": "#eceff4",
+    "textMuted": "#4c566a",
+    "textHighlight": "#ffffff",
+    "bg": "#2e3440",
+    "bgLight": "#3b4252",
+    "border": "#4c566a",
+    "selected": "#88c0d0",
+    "selectedText": "#2e3440",
+    "success": "#a3be8c",
+    "error": "#bf616a",
+    "warning": "#ebcb8b",
+    "overlay": "#000000cc",
+    "dialogText": "#eceff4"
+  }
+}

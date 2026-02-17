@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { configStore } from '../config/store';
 import { Provider } from '../types';
+import { API_FORMAT_OPTIONS } from '../utils/constants';
 
 export async function editProviderInteractive(providerId: string): Promise<void> {
   const provider = configStore.getProvider(providerId);
@@ -45,10 +46,7 @@ export async function editProviderInteractive(providerId: string): Promise<void>
       name: 'apiFormat',
       message: 'API Format:',
       default: provider.apiFormat,
-      choices: [
-        { name: 'Anthropic Messages API', value: 'anthropic-messages' },
-        { name: 'OpenAI Chat Completions API', value: 'openai-completions' }
-      ]
+      choices: API_FORMAT_OPTIONS
     },
     {
       type: 'input',

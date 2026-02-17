@@ -44,7 +44,7 @@ persona
 | e | 编辑选中的 provider |
 | d | 删除选中的 provider |
 | p | 测试 ping 选中的 provider |
-| c | 编辑通用配置 |
+| r | 刷新 provider 列表 |
 | q | 退出 |
 
 ### 命令行模式
@@ -79,16 +79,48 @@ persona ping <provider-id>
 persona rm <provider-id>
 ```
 
-#### 编辑配置
+#### 查看当前状态
 
 ```bash
-persona config
+persona status
+```
+
+#### 主题管理
+
+```bash
+persona theme              # 显示当前主题
+persona theme list         # 列出可用主题
+persona theme <名称>       # 切换主题 (persona, gruvbox, dracula, nord)
+```
+
+#### 环境变量覆盖
+
+```bash
+persona env                # 显示环境变量覆盖配置
+persona env edit          # 编辑环境变量覆盖配置
+```
+
+#### Provider 模板
+
+```bash
+persona templates         # 列出可用的 provider 模板
 ```
 
 ## 配置文件
 
 - **Provider 配置：** `~/.persona/config.json`
 - **通用配置：** `~/.persona/general.json`
+
+## 主题
+
+Persona 支持多种配色主题：
+
+| 主题 | 描述 |
+|------|------|
+| persona | 默认深色主题 |
+| gruvbox | 复古配色 |
+| dracula | 紫色暗色主题 |
+| nord | 北欧蓝 |
 
 ## 许可证
 

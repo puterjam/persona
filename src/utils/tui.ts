@@ -5,9 +5,13 @@ import { saveProvider, ProviderFormDefaults } from "../commands/add"
 import { setRenderer, getCurrentDialog, getIsInputMode, showConfirmDialog, showInputDialog, showListDialog } from "./tui/dialogs"
 import { getRenderer, getProviderSelect, getDetailText, initViews, refreshProviderList, updateStatus, showProviderDetails, switchToProvider, getSelectedProviderIndex, destroyViews, focusProviderSelect, blurProviderSelect } from "./tui/views"
 import { t, fg, bold } from "@opentui/core"
-import { colors } from "./tui/components"
+import { getColors } from "./tui/components"
+import { API_FORMAT_OPTIONS } from "./constants"
+import { loadThemeFromConfig } from "./theme"
 
 export async function startInteractiveMode(): Promise<void> {
+  loadThemeFromConfig()
+  
   const renderer = await initViews()
   setRenderer(renderer)
 
@@ -34,10 +38,10 @@ async function testProviderInTui(provider: Provider): Promise<void> {
   const result = await testProvider(provider)
 
   if (result.success) {
-    detailText.content = t`✓ Ping successful! Latency: ${fg(colors.success)((result.latency ?? 0) + "ms")}`
+    detailText.content = t`✓ Ping successful! Latency: ${fg(getColors().success)((result.latency ?? 0) + "ms")}`
     updateStatus("Ping successful!")
   } else {
-    detailText.content = t`✗ Ping failed: ${fg(colors.error)(result.error ?? "Unknown error")}`
+    detailText.content = t`✗ Ping failed: ${fg(getColors().error)(result.error ?? "Unknown error")}`
     updateStatus("Ping failed!")
   }
 }
@@ -68,7 +72,7 @@ async function editProviderInTui(provider: Provider): Promise<void> {
   const detailText = getDetailText()
   if (!detailText) return
 
-  detailText.content = t`Editing ${fg(colors.primary)(provider.name)}...`
+  detailText.content = t`Editing ${fg(getColors().primary)(provider.name)}...`
   
   const name = await showInputDialog("Edit Provider", "Name:", provider.name)
   if (name === null) return
@@ -81,10 +85,7 @@ async function editProviderInTui(provider: Provider): Promise<void> {
 
   const apiFormat = await showListDialog(
     "Edit Provider",
-    [
-      { name: "Anthropic Messages API", value: "anthropic-messages" },
-      { name: "OpenAI Chat Completions API", value: "openai-completions" }
-    ],
+    API_FORMAT_OPTIONS.map(o => ({ name: o.name, value: o.value })),
     provider.apiFormat
   )
   if (apiFormat === null) return
@@ -136,9 +137,7 @@ function editGeneralConfigInTui(): void {
 }
 
 async function handleGlobalKeyPress(key: any): Promise<void> {
-  console.log('[DEBUG] keypress:', key.name, 'isInputMode:', getIsInputMode(), 'dialog:', getCurrentDialog()?.isOpen)
   if (getIsInputMode() || getCurrentDialog()?.isOpen) {
-    console.log('[DEBUG] blocked')
     return
   }
   
@@ -233,10 +232,7 @@ async function startAddProviderFlow(): Promise<void> {
 
     const apiFormat = await showListDialog(
       "API Format",
-      [
-        { name: "Anthropic Messages API", value: "anthropic-messages" },
-        { name: "OpenAI Chat Completions API", value: "openai-completions" },
-      ],
+      API_FORMAT_OPTIONS.map(o => ({ name: o.name, value: o.value })),
       defaults.apiFormat || "anthropic-messages"
     )
     if (!apiFormat) return
