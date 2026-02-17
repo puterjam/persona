@@ -5,6 +5,7 @@ import inquirer from 'inquirer';
 import { configStore } from '../config/store';
 import { getTemplateNames, getTemplateByFullName } from '../config/templates';
 import { Provider } from '../types';
+import { API_FORMAT_OPTIONS } from '../utils/constants';
 import * as crypto from 'crypto';
 
 export interface ProviderFormData {
@@ -110,10 +111,7 @@ export async function promptForProviderDetails(defaults: ProviderFormDefaults = 
       name: 'apiFormat',
       message: 'API Format:',
       default: defaults.apiFormat || 'anthropic-messages',
-      choices: [
-        { name: 'Anthropic Messages API', value: 'anthropic-messages' },
-        { name: 'OpenAI Chat Completions API', value: 'openai-completions' }
-      ]
+      choices: API_FORMAT_OPTIONS
     },
     {
       type: 'input',

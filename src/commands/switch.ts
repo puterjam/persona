@@ -4,6 +4,8 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { configStore } from '../config/store';
 import { Provider } from '../types';
+import { maskApiKey } from '../utils/mask';
+import { API_FORMAT_OPTIONS } from '../utils/constants';
 
 export async function switchProviderInteractive(): Promise<void> {
   const providers = configStore.getProviders();
@@ -115,11 +117,6 @@ export function updateClaudeConfig(): void {
   }
 }
 
-function maskApiKey(key: string): string {
-  if (key.length <= 8) return '********';
-  return key.substring(0, 4) + '****' + key.substring(key.length - 4);
-}
-
 export function showStatus(): void {
   const activeProvider = configStore.getActiveProvider();
   const claudeSettings = configStore.getActiveClaudeSettings();
@@ -138,16 +135,26 @@ export function showStatus(): void {
     console.log(chalk.yellow('No active provider selected.'));
   }
 
-  // General Config
-  console.log(chalk.bold('\n--- General Config ---'));
-  const generalEnv = generalConfig?.env || {};
-  if (Object.keys(generalEnv).length > 0) {
-    for (const [key, value] of Object.entries(generalEnv)) {
-      if (value) {
+  // Environment Overrides
+  console.log(chalk.bold('\n--- Environment Overrides ---'));
+  if (generalConfig && Object.keys(generalConfig).length > 0) {
+    for (const [key, value] of Object.entries(generalConfig)) {
+      if (typeof value === 'string' && value) {
         if (key.toLowerCase().includes('key') || key.toLowerCase().includes('token')) {
           console.log(`  ${key}: ${maskApiKey(value)}`);
         } else {
           console.log(`  ${key}: ${value}`);
+        }
+      } else if (typeof value === 'object' && value !== null) {
+        console.log(chalk.bold(`  ${key}:`));
+        for (const [subKey, subValue] of Object.entries(value)) {
+          if (typeof subValue === 'string' && subValue) {
+            if (subKey.toLowerCase().includes('key') || subKey.toLowerCase().includes('token')) {
+              console.log(`    ${subKey}: ${maskApiKey(subValue)}`);
+            } else {
+              console.log(`    ${subKey}: ${subValue}`);
+            }
+          }
         }
       }
     }

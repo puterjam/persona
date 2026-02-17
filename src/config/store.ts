@@ -3,6 +3,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Provider, PersonaConfig, ClaudeSettings, GeneralConfig } from '../types';
+import { PROVIDER_ENV_KEYS } from '../utils/constants';
 
 const CONFIG_DIR = path.join(process.env.HOME || '/root', '.persona');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
@@ -84,6 +85,16 @@ export class ConfigStore {
     this.saveConfig();
   }
 
+  // Theme management
+  getTheme(): string {
+    return this.config.theme || 'persona';
+  }
+
+  setTheme(themeName: string): void {
+    this.config.theme = themeName;
+    this.saveConfig();
+  }
+
   // Claude settings management
   getClaudeSettings(): ClaudeSettings {
     try {
@@ -108,15 +119,31 @@ export class ConfigStore {
 
   applyProviderToClaude(provider: Provider, updateClaude: boolean = false): void {
     const settings = this.getClaudeSettings();
-    const env = settings.env || {};
+    const env: Record<string, string> = {};
+    const mergedSettings: any = {};
 
     // Apply general config first (lower priority)
+    // - Nested objects (like statusLine) go to root level
+    // - Flat key-values go to env
+    // - Special case: "env" object should be flattened into settings.env
     const generalConfig = this.getGeneralConfig();
-    if (generalConfig.env) {
-      for (const [key, value] of Object.entries(generalConfig.env)) {
-        if (value !== '' && value !== undefined && value !== null) {
-          env[key] = value;
+    for (const [key, value] of Object.entries(generalConfig)) {
+      if (key === 'env' && typeof value === 'object' && value !== null) {
+        // Special case: merge env object into settings.env
+        for (const [envKey, envValue] of Object.entries(value)) {
+          if (typeof envValue === 'string') {
+            env[envKey] = envValue;
+          } else if (typeof envValue === 'number' || typeof envValue === 'boolean') {
+            env[envKey] = String(envValue);
+          }
         }
+      } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        // Nested object - keep at root level
+        mergedSettings[key] = value;
+      } else if (typeof value === 'string') {
+        env[key] = value;
+      } else if (typeof value === 'number' || typeof value === 'boolean') {
+        env[key] = String(value);
       }
     }
 
@@ -153,6 +180,13 @@ export class ConfigStore {
 
     settings.env = env;
 
+    // Merge nested objects (like statusLine) into settings
+    for (const [key, value] of Object.entries(mergedSettings)) {
+      if (key !== 'env') {
+        settings[key] = value;
+      }
+    }
+
     if (updateClaude) {
       this.saveClaudeSettings(settings);
     }
@@ -160,34 +194,45 @@ export class ConfigStore {
 
   applyGeneralConfigOnly(): void {
     const settings = this.getClaudeSettings();
-    const env = settings.env || {};
+    const env: Record<string, string> = {};
+    const mergedSettings: any = {};
 
     // Only apply general config, clear provider-specific keys
-    const keysToRemove = [
-      'ANTHROPIC_BASE_URL',
-      'ANTHROPIC_AUTH_TOKEN',
-      'ANTHROPIC_MODEL',
-      'ANTHROPIC_DEFAULT_HAIKU_MODEL',
-      'ANTHROPIC_DEFAULT_OPUS_MODEL',
-      'ANTHROPIC_DEFAULT_SONNET_MODEL',
-      'ANTHROPIC_API_FORMAT'
-    ];
-
-    for (const key of keysToRemove) {
+    for (const key of PROVIDER_ENV_KEYS) {
       delete env[key];
     }
 
-    // Apply general config
+    // Apply general config - nested objects go to root, flat values go to env
+    // Special case: "env" object should be flattened into settings.env
     const generalConfig = this.getGeneralConfig();
-    if (generalConfig.env) {
-      for (const [key, value] of Object.entries(generalConfig.env)) {
-        if (value !== '' && value !== undefined && value !== null) {
-          env[key] = value;
+    for (const [key, value] of Object.entries(generalConfig)) {
+      if (key === 'env' && typeof value === 'object' && value !== null) {
+        // Special case: merge env object into settings.env
+        for (const [envKey, envValue] of Object.entries(value)) {
+          if (typeof envValue === 'string') {
+            env[envKey] = envValue;
+          } else if (typeof envValue === 'number' || typeof envValue === 'boolean') {
+            env[envKey] = String(envValue);
+          }
         }
+      } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        mergedSettings[key] = value;
+      } else if (typeof value === 'string') {
+        env[key] = value;
+      } else if (typeof value === 'number' || typeof value === 'boolean') {
+        env[key] = String(value);
       }
     }
 
     settings.env = env;
+
+    // Merge nested objects
+    for (const [key, value] of Object.entries(mergedSettings)) {
+      if (key !== 'env') {
+        settings[key] = value;
+      }
+    }
+
     this.saveClaudeSettings(settings);
   }
 
@@ -200,19 +245,8 @@ export class ConfigStore {
     const settings = this.getClaudeSettings();
     const env = settings.env || {};
 
-    // Keys to remove
-    const keysToRemove = [
-      'ANTHROPIC_BASE_URL',
-      'ANTHROPIC_AUTH_TOKEN',
-      'ANTHROPIC_MODEL',
-      'ANTHROPIC_DEFAULT_HAIKU_MODEL',
-      'ANTHROPIC_DEFAULT_OPUS_MODEL',
-      'ANTHROPIC_DEFAULT_SONNET_MODEL',
-      'ANTHROPIC_API_FORMAT'
-    ];
-
     // Remove persona-related keys
-    for (const key of keysToRemove) {
+    for (const key of PROVIDER_ENV_KEYS) {
       delete env[key];
     }
 
@@ -234,7 +268,7 @@ export class ConfigStore {
     } catch (error) {
       console.error('Failed to load general config:', error);
     }
-    return { env: {} };
+    return {};
   }
 
   saveGeneralConfig(config: GeneralConfig): void {

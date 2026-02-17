@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { configStore } from '../config/store';
 import { testProvider } from '../utils/api';
+import { Provider } from '../types';
 
 export async function testProviderInteractive(): Promise<void> {
   const providers = configStore.getProviders();
@@ -43,7 +44,7 @@ export async function testProviderById(providerId: string): Promise<void> {
   await testProviderAndShowResult(provider);
 }
 
-async function testProviderAndShowResult(provider: any): Promise<void> {
+async function testProviderAndShowResult(provider: Provider): Promise<void> {
   console.log(chalk.bold(`\nTesting provider: ${provider.name}\n`));
   console.log(`API URL: ${provider.baseUrl}`);
   console.log(`Model: ${provider.models.default || provider.models.haiku || 'N/A'}`);

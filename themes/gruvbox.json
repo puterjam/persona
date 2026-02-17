@@ -1,0 +1,22 @@
+{
+  "name": "Gruvbox Dark",
+  "description": "Vintage/gruvbox color scheme",
+  "type": "dark",
+  "colors": {
+    "primary": "#1d2021",
+    "primaryLight": "#fabd2f",
+    "text": "#ebdbb2",
+    "textMuted": "#665c54",
+    "textHighlight": "#fbf1c7",
+    "bg": "#1d2021",
+    "bgLight": "#282828",
+    "border": "#504945",
+    "selected": "#fb4934",
+    "selectedText": "#fbf1c7",
+    "success": "#b8bb26",
+    "error": "#fb4934",
+    "warning": "#fabd2f",
+    "overlay": "#000000cc",
+    "dialogText": "#ebdbb2"
+  }
+}

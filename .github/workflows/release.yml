@@ -139,11 +139,16 @@ jobs:
         env:
           CI: true
 
+      - name: Create zip
+        run: |
+          cd dist
+          zip persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}.zip persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: persona-${{ matrix.target }}
-          path: dist/persona-*-${{ matrix.target }}*
+          path: dist/persona-*-${{ matrix.target }}*.zip
 
   release:
     needs: [build-darwin, build-linux, build-windows]
@@ -186,6 +191,6 @@ jobs:
           files: |
             dist/persona-*
           draft: false
-          prerelease: false
+          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

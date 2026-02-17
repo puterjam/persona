@@ -1,0 +1,22 @@
+{
+  "name": "Dracula",
+  "description": "Popular purple dark theme",
+  "type": "dark",
+  "colors": {
+    "primary": "#282a36",
+    "primaryLight": "#bd93f9",
+    "text": "#f8f8f2",
+    "textMuted": "#6272a4",
+    "textHighlight": "#ffffff",
+    "bg": "#282a36",
+    "bgLight": "#44475a",
+    "border": "#6272a4",
+    "selected": "#bd93f9",
+    "selectedText": "#282a36",
+    "success": "#50fa7b",
+    "error": "#ff5555",
+    "warning": "#f1fa8c",
+    "overlay": "#000000cc",
+    "dialogText": "#f8f8f2"
+  }
+}
