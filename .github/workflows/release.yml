@@ -147,7 +147,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: persona-${{ matrix.target }}
-          path: dist/persona-*-${{ matrix.target }}.zip
+          path: dist/persona-*-${{ matrix.target }}${{ matrix.ext }}.zip
 
   release:
     needs: [build-darwin, build-linux, build-windows]
