@@ -53,7 +53,7 @@ export function getStatusText() {
 
 export async function initViews(): Promise<CliRenderer> {
   renderer = await createCliRenderer({
-    exitOnCtrlC: false,
+    exitOnCtrlC: true,
     consoleOptions: {
       position: ConsolePosition.TOP,
       sizePercent: 20,
@@ -111,7 +111,7 @@ function calculateMainContainerLayout(): { height: number; top: number; width: n
   const containerWidth = Math.floor(renderer.width * 0.8)
   const centerLeft = Math.floor((renderer.width - containerWidth) / 2)
 
-  return { height: containerHeight, top: centerTop + 1, width: containerWidth, left: centerLeft }
+  return { height: containerHeight, top: centerTop+1, width: containerWidth, left: centerLeft }
 }
 
 function updateMainContainerPosition(): void {
@@ -153,7 +153,7 @@ function createHeader(): void {
   const headerBg = new BoxRenderable(renderer, {
     id: "header-bg",
     width: "100%",
-    height: 3,
+    height: 5,
     backgroundColor: colors.primary,
     position: "absolute",
     left: 0,
@@ -336,7 +336,7 @@ export function refreshProviderList(): void {
   const options: SelectOption[] = [
     {
       name: isDefaultActive ? "(Default) ✓" : "(Default)",
-      description: "official config",
+      description: "Anthropic official",
       value: "default",
     },
     ...providers.map((p) => {
