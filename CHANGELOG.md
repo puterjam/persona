@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.1.0
+## v1.1.28
 
 ### Features
 - **Theme System** - Add 4 built-in themes (persona, gruvbox, dracula, nord)
