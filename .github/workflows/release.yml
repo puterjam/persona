@@ -141,14 +141,13 @@ jobs:
 
       - name: Create zip
         run: |
-          cd dist
-          zip persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}.zip persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}
+          Compress-Archive -Path "dist/persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}" -DestinationPath "dist/persona-${{ steps.version.outputs.version }}-${{ matrix.target }}${{ matrix.ext }}.zip"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: persona-${{ matrix.target }}
-          path: dist/persona-*-${{ matrix.target }}*.zip
+          path: dist/persona-*-${{ matrix.target }}.zip
 
   release:
     needs: [build-darwin, build-linux, build-windows]
