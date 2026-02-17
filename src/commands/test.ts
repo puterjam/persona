@@ -56,6 +56,15 @@ async function testProviderAndShowResult(provider: Provider): Promise<void> {
     console.log(chalk.green('✓ Connection successful!'));
     console.log(`  Latency: ${result.latency}ms`);
     console.log(`  Model: ${result.model}`);
+    
+    if (result.timingBreakdown) {
+      console.log(chalk.bold('\n  Timing Breakdown:'));
+      const { dns, connect, ttfb, api } = result.timingBreakdown;
+      if (dns !== undefined) console.log(`    DNS: ${dns}ms`);
+      if (connect !== undefined) console.log(`    Connect: ${connect}ms`);
+      if (ttfb !== undefined) console.log(`    TTFB: ${ttfb}ms`);
+      if (api !== undefined) console.log(`    API: ${api}ms`);
+    }
   } else {
     console.log(chalk.red('✗ Connection failed!'));
     if (result.error) {

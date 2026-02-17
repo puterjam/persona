@@ -58,6 +58,7 @@ export function getStatusText() {
 export async function initViews(): Promise<CliRenderer> {
   renderer = await createCliRenderer({
     exitOnCtrlC: true,
+    useMouse: true,
     consoleOptions: {
       position: ConsolePosition.TOP,
       sizePercent: layout.consoleHeightPercent,
@@ -306,8 +307,6 @@ function createStatusBar(): void {
     { text: " add/edit/del  ", highlight: false },
     { text: "p", highlight: true },
     { text: " ping  ", highlight: false },
-    { text: "c", highlight: true },
-    { text: " config  ", highlight: false },
     { text: "q", highlight: true },
     { text: " quit", highlight: false },
   ]

@@ -54,4 +54,5 @@ export interface TestResult {
   error?: string;
   model?: string;
   endpoint?: string;
+  timingBreakdown?: Record<string, number>;
 }

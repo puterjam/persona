@@ -6,7 +6,6 @@ import { setRenderer, getCurrentDialog, getIsInputMode, showConfirmDialog, showI
 import { getRenderer, getProviderSelect, getDetailText, initViews, refreshProviderList, updateStatus, showProviderDetails, switchToProvider, getSelectedProviderIndex, destroyViews, focusProviderSelect, blurProviderSelect } from "./tui/views"
 import { t, fg, bold } from "@opentui/core"
 import { getColors } from "./tui/components"
-import { API_FORMAT_OPTIONS } from "./constants"
 import { loadThemeFromConfig } from "./theme"
 
 export async function startInteractiveMode(): Promise<void> {
@@ -38,7 +37,24 @@ async function testProviderInTui(provider: Provider): Promise<void> {
   const result = await testProvider(provider)
 
   if (result.success) {
-    detailText.content = t`✓ Ping successful! Latency: ${fg(getColors().success)((result.latency ?? 0) + "ms")}`
+    const latency = result.latency ?? 0
+    let content: any = ""
+
+    if (result.timingBreakdown) {
+      const { dns, connect, ttfb, api } = result.timingBreakdown
+content = t`✓ Ping successful! 
+
+  Latency: ${fg(getColors().success)(latency + "ms")}
+    ${fg(getColors().textMuted)("  DNS:")} ${fg(getColors().textHighlight)((dns || "N/A") + " ms")} 
+    ${fg(getColors().textMuted)(" CONN:")} ${fg(getColors().textHighlight)((connect || "N/A") + " ms")} 
+    ${fg(getColors().textMuted)(" TTFB:")} ${fg(getColors().textHighlight)((ttfb || "N/A" )+ " ms")} 
+    ${fg(getColors().textMuted)("  API:")} ${fg(getColors().textHighlight)((api || "N/A") + " ms")} 
+`
+      detailText.content = content
+    } else {
+      detailText.content = t`✓ Ping successful! Latency: ${fg(getColors().success)(latency + "ms")}`
+    }
+    
     updateStatus("Ping successful!")
   } else {
     detailText.content = t`✗ Ping failed: ${fg(getColors().error)(result.error ?? "Unknown error")}`
@@ -74,23 +90,19 @@ async function editProviderInTui(provider: Provider): Promise<void> {
 
   detailText.content = t`Editing ${fg(getColors().primary)(provider.name)}...`
   
-  const name = await showInputDialog("Edit Provider", "Name:", provider.name)
+  const name = await showInputDialog("Edit Provider", "Name:", provider.name,true)
   if (name === null) return
 
-  const baseUrl = await showInputDialog("Edit Provider", "Base URL:", provider.baseUrl)
+  const baseUrl = await showInputDialog("Edit Provider", "Base URL:", provider.baseUrl,true)
   if (baseUrl === null) return
 
-  const apiKey = await showInputDialog("Edit Provider", "API Key (leave empty to keep current):", "")
+  const apiKey = await showInputDialog("Edit Provider", "API Key (leave empty to keep current):", "",true)
   if (apiKey === null) return
 
-  const apiFormat = await showListDialog(
-    "Edit Provider",
-    API_FORMAT_OPTIONS.map(o => ({ name: o.name, value: o.value })),
-    provider.apiFormat
-  )
-  if (apiFormat === null) return
+  // Default to Anthropic Messages format (OpenAI format temporarily disabled)
+  const apiFormat = provider.apiFormat
 
-  const defaultModel = await showInputDialog("Edit Default Model:", "Default Model", provider.models.default || "")
+  const defaultModel = await showInputDialog("Edit Default Model:", "Default Model", provider.models.default || "",true)
   if (defaultModel === null) return
 
   const haikuModel = await showInputDialog("Edit Haiku Model", "Haiku model name (optional)", provider.models.haiku || "")
@@ -190,11 +202,11 @@ async function startAddProviderFlow(): Promise<void> {
       "Would you like to use a provider template?"
     )
 
-    if (useTemplate === null || useTemplate === false) {
-      return
-    }
+    // If cancelled (Escape), return
+    if (useTemplate === null) return
 
-    if (useTemplate) {
+    // If Yes, select a template
+    if (useTemplate === true) {
       const templateNames = getTemplateNames()
       const selectedTemplate = await showListDialog(
         "Select a Template",
@@ -218,6 +230,8 @@ async function startAddProviderFlow(): Promise<void> {
       }
     }
 
+    // Continue with custom provider details (whether user chose Yes with template or No)
+
     const name = await showInputDialog("Enter Provider Name", "Proider Name", defaults.name || "", true)
     if (!name) return
 
@@ -230,14 +244,10 @@ async function startAddProviderFlow(): Promise<void> {
     const apiKey = await showInputDialog("Enter API Key", "API Key", "", true, true)
     if (!apiKey) return
 
-    const apiFormat = await showListDialog(
-      "API Format",
-      API_FORMAT_OPTIONS.map(o => ({ name: o.name, value: o.value })),
-      defaults.apiFormat || "anthropic-messages"
-    )
-    if (!apiFormat) return
+    // Default to Anthropic Messages format
+    const apiFormat = "anthropic-messages"
 
-    const defaultModel = await showInputDialog("Default Model", "Default model name:", defaults.models?.default || "")
+    const defaultModel = await showInputDialog("Default Model", "Default model name:", defaults.models?.default || "",true)
     if (defaultModel === null) return
 
     const haikuModel = await showInputDialog("Haiku Model", "Haiku model name (optional):", defaults.models?.haiku || "")

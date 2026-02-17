@@ -39,7 +39,7 @@ export function getIsInputMode() {
 export async function showConfirmDialog(
   title: string,
   message: string
-): Promise<boolean> {
+): Promise<boolean | null> {
   return new Promise((resolve) => {
     if (!renderer) {
       resolve(false)
@@ -127,11 +127,11 @@ export async function showConfirmDialog(
       } else if (k.name === "return") {
         renderer!.keyInput.off("keypress", keyHandler)
         closeDialog()
-        resolve(selectedButton === 0)
+        resolve(selectedButton === 0) // true = Yes, false = No
       } else if (k.name === "escape") {
         renderer!.keyInput.off("keypress", keyHandler)
         closeDialog()
-        resolve(false)
+        resolve(null) // null = cancelled
       }
     }
 
