@@ -5,20 +5,26 @@ layout: home
 <div align="center">
 
 <pre style="background: transparent; border: none; font-family: monospace;">
-
 █▀█ █▀▀ █▀█ █▀▀ █▀█ █▄ █ ▄▀█
 █▀▀ ██▄ █▀▄ ▄▄█ █▄█ █ ▀█ █▀█
-
+AI Coding CLI Provider Manager
 </pre>
 
-### AI Coding CLI Provider Manager
-
-<p>
+<div class="badges">
 
 [![GitHub release](https://img.shields.io/github/release/puterjam/persona.svg)](https://github.com/puterjam/persona/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-</p>
+</div>
+
+<style>
+.badges {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+</style>
 
 </div>
 
@@ -64,12 +70,6 @@ Beautiful terminal user interface with keyboard navigation. Press `?` for help.
 
 ```bash
 curl -sSfL https://puterjam.github.io/persona/install.sh | bash
-```
-
-For custom directory:
-
-```bash
-curl -sSfL https://puterjam.github.io/persona/install.sh | bash -s -- -d /usr/local/bin
 ```
 
 ## Getting Started
