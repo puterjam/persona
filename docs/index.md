@@ -13,9 +13,10 @@ AI Coding CLI Provider Manager
 <div class="badges">
 
 [![GitHub release](https://img.shields.io/github/release/puterjam/persona.svg)](https://github.com/puterjam/persona/releases/latest)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 </div>
+
+![Interface](/persona/screenshot.png)
 
 <style>
 .badges {
