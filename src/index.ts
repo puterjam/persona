@@ -17,6 +17,7 @@ import { testProviderInteractive, testProviderById } from './commands/test';
 import { editGeneralConfig, showGeneralConfig } from './commands/config';
 import { showTheme, listThemes, setTheme } from './commands/theme';
 import { showEnvConfig, editEnvConfig } from './commands/env';
+import { syncAssets } from './commands/sync';
 import { startInteractiveMode } from './tui';
 
 const commands = {
@@ -61,6 +62,10 @@ const commands = {
   env: {
     description: 'Manage environment variable overrides',
     usage: 'persona env [edit|show]'
+  },
+  sync: {
+    description: 'Sync templates and themes from GitHub',
+    usage: 'persona sync [--templates] [--themes] [--all] [--force]'
   },
   help: {
     aliases: ['h', '?'],
@@ -304,6 +309,30 @@ async function main(): Promise<void> {
           console.log(chalk.yellow('Usage: persona env [edit|show]'));
           process.exit(1);
         }
+        break;
+      }
+
+      case 'sync': {
+        const parsed = parseArgs({
+          args: args.slice(1),
+          options: {
+            templates: { type: 'boolean', default: false },
+            themes: { type: 'boolean', default: false },
+            all: { type: 'boolean', default: false },
+            force: { type: 'boolean', short: 'f', default: false }
+          },
+          strict: false
+        });
+
+        const templates = parsed.values.templates as boolean;
+        const themes = parsed.values.themes as boolean;
+        const all = parsed.values.all as boolean;
+
+        await syncAssets({
+          templates: all || templates || (!themes && !templates),
+          themes: all || themes || (!themes && !templates),
+          force: parsed.values.force as boolean
+        });
         break;
       }
 

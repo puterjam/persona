@@ -77,6 +77,35 @@ get_download_url() {
     echo "https://github.com/$REPO/releases/download/v${version}/persona-${version}-bun-${OS}-${ARCH}.zip"
 }
 
+sync_assets() {
+    local themes_dir="$HOME/.persona/themes"
+    local templates_dir="$HOME/.persona/templates"
+
+    echo "Syncing themes and templates..."
+
+    mkdir -p "$themes_dir"
+    for theme in persona gruvbox dracula nord; do
+        curl -fsSL "https://raw.githubusercontent.com/$REPO/refs/heads/dev/themes/${theme}.json" -o "$themes_dir/${theme}.json" || true
+    done
+    echo "Synced themes to $themes_dir"
+
+    mkdir -p "$templates_dir"
+    local categories=$(curl -fsSL "https://api.github.com/repos/$REPO/contents/templates" | grep '"name"' | grep -o '/templates/[^"]*' | cut -d'/' -f3 | sort -u || echo "claude")
+    
+    for cat in $categories; do
+        local cat_dir="$templates_dir/$cat"
+        mkdir -p "$cat_dir"
+        local files=$(curl -fsSL "https://api.github.com/repos/$REPO/contents/templates/$cat" 2>/dev/null | grep '"name"' | grep -o '"[^"]*\.json"' | tr -d '"' || true)
+        for file in $files; do
+            curl -fsSL "https://raw.githubusercontent.com/$REPO/refs/heads/dev/templates/$cat/$file" -o "$cat_dir/$file" 2>/dev/null || true
+        done
+    done
+    
+    if [[ -d "$templates_dir/claude" ]]; then
+        echo "Synced templates to $templates_dir"
+    fi
+}
+
 install() {
     local version="$1"
     local download_url="$2"
@@ -90,7 +119,9 @@ install() {
     local zip_path="$tmp_dir/persona.zip"
     curl -fSL "$download_url" -o "$zip_path"
     unzip -o "$zip_path" -d "$tmp_dir"
-    chmod +x "$tmp_dir/persona"
+    local binary_path
+    binary_path=$(ls "$tmp_dir"/persona-*-bun-${OS}-${ARCH})
+    chmod +x "$binary_path"
 
     if [[ "$INSTALL_DIR" == /usr/local/bin/* ]] && [[ -z "$SUDO_USER" ]]; then
         echo "Error: Installing to $INSTALL_DIR requires sudo"
@@ -105,8 +136,9 @@ install() {
         exit 0
     fi
 
-    cp "$tmp_dir/persona" "$INSTALL_DIR/persona"
-    rm -rf "$tmp_dir"
+    cp "$binary_path" "$INSTALL_DIR/persona"
+
+    sync_assets
 
     echo "Installed persona to $INSTALL_DIR/persona"
 

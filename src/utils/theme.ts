@@ -62,7 +62,29 @@ export const layout = defaultTheme.layout;
 
 let currentTheme: ThemeColors = defaultTheme.colors;
 
-const THEMES_DIR = path.join(__dirname, '../../themes');
+const USER_THEMES_DIR = path.join(process.env.HOME || process.env.USERPROFILE || '/root', '.persona', 'themes');
+
+function findProjectThemesDir(): string | null {
+  const personaRoot = process.env.PERSONA_ROOT;
+  if (personaRoot) {
+    const p = path.join(personaRoot, 'themes');
+    if (fs.existsSync(p) && fs.statSync(p).isDirectory()) {
+      return p;
+    }
+  }
+  return null;
+}
+
+const PROJECT_THEMES_DIR = findProjectThemesDir();
+
+const builtInThemes: Record<string, ThemeConfig> = {
+  persona: {
+    name: "Persona",
+    description: "Default dark theme",
+    type: "dark",
+    colors: defaultTheme.colors
+  }
+};
 
 export function getThemeColors(): ThemeColors {
   return currentTheme;
@@ -73,37 +95,67 @@ export function setThemeColors(colors: ThemeColors): void {
 }
 
 export function getThemeNames(): string[] {
+  const names = new Set<string>();
+  
   try {
-    if (!fs.existsSync(THEMES_DIR)) {
-      return ['persona'];
+    if (fs.existsSync(USER_THEMES_DIR)) {
+      const files = fs.readdirSync(USER_THEMES_DIR);
+      files.filter(f => f.endsWith('.json')).forEach(f => names.add(f.replace('.json', '')));
     }
-    const files = fs.readdirSync(THEMES_DIR);
-    return files
-      .filter(f => f.endsWith('.json'))
-      .map(f => f.replace('.json', ''));
-  } catch {
-    return ['persona'];
+  } catch {}
+  
+  try {
+    if (PROJECT_THEMES_DIR && fs.existsSync(PROJECT_THEMES_DIR)) {
+      const files = fs.readdirSync(PROJECT_THEMES_DIR);
+      files.filter(f => f.endsWith('.json')).forEach(f => names.add(f.replace('.json', '')));
+    }
+  } catch {}
+  
+  if (names.size === 0) {
+    console.log('  Using built-in:', Object.keys(builtInThemes));
+    return Object.keys(builtInThemes);
   }
+  
+  return Array.from(names).sort();
+}
+
+function findThemePath(name: string): string | null {
+  const userPath = path.join(USER_THEMES_DIR, `${name}.json`);
+  if (fs.existsSync(userPath)) {
+    return userPath;
+  }
+  
+  if (PROJECT_THEMES_DIR) {
+    const projectPath = path.join(PROJECT_THEMES_DIR, `${name}.json`);
+    if (fs.existsSync(projectPath)) {
+      return projectPath;
+    }
+  }
+  
+  return null;
 }
 
 export function loadTheme(name: string): ThemeColors | null {
-  const themePath = path.join(THEMES_DIR, `${name}.json`);
+  const themePath = findThemePath(name);
   
-  try {
-    if (!fs.existsSync(themePath)) {
-      console.error(`Theme "${name}" not found`);
-      return null;
+  if (themePath) {
+    try {
+      const content = fs.readFileSync(themePath, 'utf-8');
+      const config: ThemeConfig = JSON.parse(content);
+      setThemeColors(config.colors);
+      return config.colors;
+    } catch (error) {
+      console.error(`Failed to load theme "${name}":`, error);
     }
-    
-    const content = fs.readFileSync(themePath, 'utf-8');
-    const config: ThemeConfig = JSON.parse(content);
-    
-    setThemeColors(config.colors);
-    return config.colors;
-  } catch (error) {
-    console.error(`Failed to load theme "${name}":`, error);
-    return null;
   }
+  
+  if (builtInThemes[name]) {
+    setThemeColors(builtInThemes[name].colors);
+    return builtInThemes[name].colors;
+  }
+  
+  console.error(`Theme "${name}" not found`);
+  return null;
 }
 
 export function loadThemeFromConfig(): void {
