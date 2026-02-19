@@ -16,7 +16,7 @@ AI Coding CLI Provider Manager
 
 </div>
 
-![Interface](https://github.com/puterjam/persona/blob/dev/docs/screenshot.png)
+<img src="https://github.com/puterjam/persona/blob/dev/docs/screenshot.png?raw=true" width="50%" />
 
 <style>
 .badges {
