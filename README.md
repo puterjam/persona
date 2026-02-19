@@ -123,6 +123,8 @@ persona templates         # List available provider templates
 
 ## Themes
 
+![Themes](docs/screenshot2.png)
+
 Persona supports multiple color themes. Available themes:
 
 | Theme | Description |

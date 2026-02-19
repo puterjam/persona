@@ -123,6 +123,8 @@ persona templates         # 列出可用的 provider 模板
 
 ## 主题
 
+![Themes](docs/screenshot2.png)
+
 Persona 支持多种配色主题：
 
 | 主题 | 描述 |
