@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.2.0
+
+### Features
+- **OpenTUI React TUI** - Complete rebuild using @opentui/react with React-based components
+- **Border Highlight** - Active provider shows highlighted border in primaryLight color
+- **Theme Switching** - Press `t` in TUI mode to switch between themes (persona, gruvbox, dracula, nord)
+
+### Components
+- Header - ASCII art title with version
+- StatusBar - Keyboard shortcuts and status messages
+- DetailPanel - Provider details, ping results, messages
+- Dialogs - Confirm, Input, List dialogs
+
+### Refactoring
+- Remove legacy blessed-based TUI implementation
+- Migrate from imperative to component-based TUI
+
 ## v1.1.28
 
 ### Features
