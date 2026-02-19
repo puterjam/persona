@@ -116,6 +116,17 @@ persona env edit          # Edit environment variable overrides
 persona templates         # List available provider templates
 ```
 
+#### Sync Templates and Themes
+
+```bash
+persona sync                    # Sync all templates and themes from GitHub
+persona sync --templates         # Sync only templates
+persona sync --themes           # Sync only themes
+persona sync --force            # Force overwrite existing files
+```
+
+> Note: After installation, run `persona sync` to download the latest templates and themes to `~/.persona/`
+
 ## Configuration Files
 
 - **Provider Config:** `~/.persona/config.json`

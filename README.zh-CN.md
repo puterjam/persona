@@ -116,6 +116,17 @@ persona env edit          # 编辑环境变量覆盖配置
 persona templates         # 列出可用的 provider 模板
 ```
 
+#### 同步模板和主题
+
+```bash
+persona sync                    # 从 GitHub 同步所有模板和主题
+persona sync --templates        # 仅同步模板
+persona sync --themes          # 仅同步主题
+persona sync --force           # 强制覆盖现有文件
+```
+
+> 注意：安装后请运行 `persona sync` 将最新的模板和主题下载到 `~/.persona/`
+
 ## 配置文件
 
 - **Provider 配置：** `~/.persona/config.json`

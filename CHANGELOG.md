@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.2.2
+
+### Features
+- **Sync Command** - New command to sync templates and themes from GitHub
+  - `persona sync` - Sync all (templates and themes)
+  - `persona sync --templates` - Sync only templates
+  - `persona sync --themes` - Sync only themes
+  - `persona sync --force` - Force overwrite existing files
+
+### Improvements
+- **Directory Resolution** - Optimized template and theme loading order:
+  1. User directory: `~/.persona/templates/`, `~/.persona/themes/`
+  2. Current working directory (for `pnpm dev`)
+  3. Environment variable: `$PERSONA_ROOT/`
+  4. Built-in fallback
+
+### Installation
+- Install script now automatically syncs templates and themes on first install
+
 ## v1.2.0
 
 ### Features
