@@ -10,8 +10,18 @@ AI 编程 CLI Provider 管理工具
 
 ## 安装
 
-从 [GitHub Releases](https://github.com/puterjam/persona/releases) 页面下载最新版本。
+### 快速安装
 
+```bash
+curl -sSfL https://get.persona.sh | bash
+```
+
+自定义安装目录：
+```bash
+curl -sSfL https://get.persona.sh | bash -s -- -d /usr/local/bin
+```
+
+### 手动下载
 ### 支持的平台
 
 | 平台 | 架构 | 文件名 |

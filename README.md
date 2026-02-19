@@ -10,8 +10,18 @@ AI Coding CLI Provider Manager
 
 ## Installation
 
-Download the latest release from the [GitHub Releases](https://github.com/puterjam/persona/releases) page.
+### Quick Install
 
+```bash
+curl -sSfL https://get.persona.sh | bash
+```
+
+For custom installation directory:
+```bash
+curl -sSfL https://get.persona.sh | bash -s -- -d /usr/local/bin
+```
+
+### Manual Download
 ### Supported Platforms
 
 | Platform | Architecture | File |
