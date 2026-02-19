@@ -3,13 +3,14 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: 'Persona',
   description: 'AI Coding CLI Provider Manager',
+  base: '/persona/',
   head: [
-    ['link', { rel: 'icon', href: '/favicon.ico' }]
+    ['link', { rel: 'icon', href: '/persona/favicon.ico' }]
   ],
   themeConfig: {
     nav: [
-      { text: 'Home', link: '/' },
-      { text: 'Guide', link: '/guide/install' },
+      { text: 'Home', link: '/persona/' },
+      { text: 'Guide', link: '/persona/guide/install' },
       { text: 'GitHub', link: 'https://github.com/puterjam/persona' }
     ],
 
@@ -17,9 +18,9 @@ export default defineConfig({
       {
         text: 'Guide',
         items: [
-          { text: 'Installation', link: '/guide/install' },
-          { text: 'Usage', link: '/guide/usage' },
-          { text: 'Commands', link: '/guide/commands' }
+          { text: 'Installation', link: '/persona/guide/install' },
+          { text: 'Usage', link: '/persona/guide/usage' },
+          { text: 'Commands', link: '/persona/guide/commands' }
         ]
       }
     ],

@@ -3,6 +3,7 @@
 set -e
 
 REPO="puterjam/persona"
+BASE_URL="https://puterjam.github.io/persona"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 FORCE=false
 LOG_FILE="${LOG_FILE:-/dev/null}"
