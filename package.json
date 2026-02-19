@@ -3,6 +3,10 @@
   "version": "1.2.8",
   "description": "CLI tool to switch Claude CLI configurations between different model providers",
   "type": "module",
+  "main": "dist/persona",
+  "bin": {
+    "persona": "./dist/persona"
+  },
   "scripts": {
     "build": "bun run scripts/update-version.ts && bun build src/index.ts --compile --outfile ./dist/persona --target node",
     "start": "bun run dist/index.js",

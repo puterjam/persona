@@ -11,7 +11,7 @@ layout: home
 
 <p>
 
-[![npm version](https://img.shields.io/npm/v/persona.svg)](https://www.npmjs.com/package/persona)
+[![npm version](https://img.shields.io/npm/v/persona.svg)](https://www.npmjs.com/package/persona-ai)
 [![GitHub release](https://img.shields.io/github/release/puterjam/persona.svg)](https://github.com/puterjam/persona/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
