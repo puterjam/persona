@@ -10,8 +10,18 @@ AI 编程 CLI Provider 管理工具
 
 ## 安装
 
-从 [GitHub Releases](https://github.com/puterjam/persona/releases) 页面下载最新版本。
+### 快速安装
 
+```bash
+curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | bash
+```
+
+自定义安装目录：
+```bash
+curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | bash -s -- -d /usr/local/bin
+```
+
+### 手动下载
 ### 支持的平台
 
 | 平台 | 架构 | 文件名 |
@@ -44,7 +54,7 @@ persona
 | e | 编辑选中的 provider |
 | d | 删除选中的 provider |
 | p | 测试 ping 选中的 provider |
-| r | 刷新 provider 列表 |
+| t | 更换风格 |
 | q | 退出 |
 
 ### 命令行模式
@@ -112,6 +122,8 @@ persona templates         # 列出可用的 provider 模板
 - **通用配置：** `~/.persona/general.json`
 
 ## 主题
+
+![Themes](docs/screenshot2.png)
 
 Persona 支持多种配色主题：
 
