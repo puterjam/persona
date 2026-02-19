@@ -38,8 +38,10 @@ jobs:
       - name: Build with VitePress
         run: pnpm exec vitepress build docs
 
-      - name: Copy install.sh
-        run: cp install.sh docs/.vitepress/dist/install.sh
+      - name: Copy install.sh to dist
+        run: |
+          cp docs/install.sh docs/.vitepress/dist/install.sh
+          cp docs/install.sh .
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

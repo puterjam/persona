@@ -13,12 +13,12 @@ AI 编程 CLI Provider 管理工具
 ### 快速安装
 
 ```bash
-curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | bash
+curl -sSfL https://puterjam.github.io/persona/install.sh | bash
 ```
 
 自定义安装目录：
 ```bash
-curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | bash -s -- -d /usr/local/bin
+curl -sSfL https://puterjam.github.io/persona/install.sh | bash -s -- -d /usr/local/bin
 ```
 
 ### 手动下载

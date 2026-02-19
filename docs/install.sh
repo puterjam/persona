@@ -21,7 +21,7 @@ welcome() {
 
 usage() {
     cat <<EOF
-Usage: curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | [sudo] bash [-s -- [-f] [-d DIR] [version]]
+Usage: curl -sSfL https://puterjam.github.io/persona/install.sh | [sudo] bash [-s -- [-f] [-d DIR] [version]]
 
 Options:
     -f, --force      Force reinstall even if already installed
@@ -29,9 +29,9 @@ Options:
     version          Specific version to install (default: latest)
 
 Examples:
-    curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | bash
-    curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | sudo bash
-    curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | bash -s -- -d /usr/local/bin
+    curl -sSfL https://puterjam.github.io/persona/install.sh | bash
+    curl -sSfL https://puterjam.github.io/persona/install.sh | sudo bash
+    curl -sSfL https://puterjam.github.io/persona/install.sh | bash -s -- -d /usr/local/bin
 EOF
     exit 0
 }

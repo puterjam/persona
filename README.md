@@ -13,12 +13,12 @@ AI Coding CLI Provider Manager
 ### Quick Install
 
 ```bash
-curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | bash
+curl -sSfL https://puterjam.github.io/persona/install.sh | bash
 ```
 
 For custom installation directory:
 ```bash
-curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | bash -s -- -d /usr/local/bin
+curl -sSfL https://puterjam.github.io/persona/install.sh | bash -s -- -d /usr/local/bin
 ```
 
 ### Manual Download
