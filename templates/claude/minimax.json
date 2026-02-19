@@ -4,7 +4,7 @@
   "baseUrl": "https://api.minimaxi.com/anthropic",
   "apiFormat": "anthropic-messages",
   "defaultModels": {
-    "haiku": "MiniMax-M2.5",
+    "haiku": "MiniMax-M2.5-highspeed",
     "opus": "MiniMax-M2.5",
     "sonnet": "MiniMax-M2.5",
     "default": "MiniMax-M2.5"

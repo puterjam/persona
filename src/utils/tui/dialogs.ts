@@ -66,7 +66,7 @@ export async function showConfirmDialog(
       position: "absolute",
       left: padding,
       top: contentTop,
-      zIndex: 202,
+      zIndex: 202
     })
 
     const buttonContainer = new BoxRenderable(renderer, {
@@ -81,7 +81,7 @@ export async function showConfirmDialog(
       left: padding,
       top: contentTop + 3,
       shouldFill: true,
-      zIndex: 202,
+      zIndex: 202
     })
 
     const yesBtn = createButton(renderer, "Yes", true, 10)

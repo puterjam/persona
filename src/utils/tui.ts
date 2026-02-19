@@ -96,7 +96,7 @@ async function editProviderInTui(provider: Provider): Promise<void> {
   const baseUrl = await showInputDialog("Edit Provider", "Base URL:", provider.baseUrl,true)
   if (baseUrl === null) return
 
-  const apiKey = await showInputDialog("Edit Provider", "API Key (leave empty to keep current):", "",true)
+  const apiKey = await showInputDialog("Edit Provider", "API Key (leave empty to keep current):", "")
   if (apiKey === null) return
 
   // Default to Anthropic Messages format (OpenAI format temporarily disabled)

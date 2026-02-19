@@ -17,7 +17,7 @@ import { testProviderInteractive, testProviderById } from './commands/test';
 import { editGeneralConfig, showGeneralConfig } from './commands/config';
 import { showTheme, listThemes, setTheme } from './commands/theme';
 import { showEnvConfig, editEnvConfig } from './commands/env';
-import { startInteractiveMode } from './utils/tui';
+import { startInteractiveMode } from './tui';
 
 const commands = {
   ls: {
@@ -98,7 +98,7 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
   if (args.length === 0) {
-    startInteractiveMode();
+    await startInteractiveMode();
     return;
   }
 
@@ -250,7 +250,7 @@ async function main(): Promise<void> {
       }
 
       case 'interactive': {
-        startInteractiveMode();
+        await startInteractiveMode();
         break;
       }
 

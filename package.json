@@ -1,45 +1,48 @@
 {
-	"name": "persona",
-	"version": "1.1.30",
-	"description": "CLI tool to switch Claude CLI configurations between different model providers",
-	"type": "module",
-	"main": "dist/persona",
-	"bin": {
-		"persona": "./dist/persona"
-	},
-	"scripts": {
-		"build": "bun run scripts/update-version.ts && bun build src/index.ts --compile --outfile ./dist/persona --target node",
-		"start": "bun run dist/index.js",
-		"dev": "bun run src/index.ts",
-		"link": "bun run scripts/update-version.ts && bun build src/index.ts --compile --outfile ./dist/persona --target node && sudo npm link"
-	},
-	"keywords": [
-		"claude",
-		"cli",
-		"model",
-		"provider",
-		"switch"
-	],
-	"author": "",
-	"license": "MIT",
-	"dependencies": {
-		"@opentui/core": "^0.1.79",
-		"axios": "^1.6.0",
-		"blessed": "^0.1.81",
-		"chalk": "^4.1.2",
-		"conf": "^10.2.0",
-		"inquirer": "^8.2.5"
-	},
-	"devDependencies": {
-		"@types/blessed": "^0.1.19",
-		"@types/inquirer": "^8.2.10",
-		"@types/node": "^20.10.0",
-		"release-it": "^19.2.4",
-		"ts-node": "^10.9.2",
-		"typescript": "^5.3.0"
-	},
-	"packageManager": "pnpm@10.8.1+sha512.c50088ba998c67b8ca8c99df8a5e02fd2ae2e2b29aaf238feaa9e124248d3f48f9fb6db2424949ff901cffbb5e0f0cc1ad6aedb602cd29450751d11c35023677",
-	"optionalDependencies": {
-		"@opentui/core-darwin-arm64": "^0.1.79"
-	}
+  "name": "persona",
+  "version": "1.1.31",
+  "description": "CLI tool to switch Claude CLI configurations between different model providers",
+  "type": "module",
+  "main": "dist/persona",
+  "bin": {
+    "persona": "./dist/persona"
+  },
+  "scripts": {
+    "build": "bun run scripts/update-version.ts && bun build src/index.ts --compile --outfile ./dist/persona --target node",
+    "start": "bun run dist/index.js",
+    "dev": "bun run src/index.ts",
+    "link": "bun run scripts/update-version.ts && bun build src/index.ts --compile --outfile ./dist/persona --target node && sudo npm link"
+  },
+  "keywords": [
+    "claude",
+    "cli",
+    "model",
+    "provider",
+    "switch"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@opentui/core": "^0.1.80",
+    "@opentui/react": "^0.1.79",
+    "axios": "^1.6.0",
+    "blessed": "^0.1.81",
+    "chalk": "^4.1.2",
+    "conf": "^10.2.0",
+    "inquirer": "^8.2.5",
+    "react": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/blessed": "^0.1.19",
+    "@types/inquirer": "^8.2.10",
+    "@types/node": "^20.10.0",
+    "@types/react": "^19.1.0",
+    "release-it": "^19.2.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.0"
+  },
+  "packageManager": "pnpm@10.8.1+sha512.c50088ba998c67b8ca8c99df8a5e02fd2ae2e2b29aaf238feaa9e124248d3f48f9fb6db2424949ff901cffbb5e0f0cc1ad6aedb602cd29450751d11c35023677",
+  "optionalDependencies": {
+    "@opentui/core-darwin-arm64": "^0.1.79"
+  }
 }

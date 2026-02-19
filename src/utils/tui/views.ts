@@ -58,7 +58,6 @@ export function getStatusText() {
 export async function initViews(): Promise<CliRenderer> {
   renderer = await createCliRenderer({
     exitOnCtrlC: true,
-    useMouse: true,
     consoleOptions: {
       position: ConsolePosition.TOP,
       sizePercent: layout.consoleHeightPercent,
@@ -148,11 +147,11 @@ function createHeader(): void {
     id: "header-subtitle",
     content: t`${fg(getColors().textMuted)("AI Coding CLI Provider Manager")}`,
     width: "100%",
-    height: "100%",
+    height: 5,
     position: "absolute",
     top: 4,
     left: 3,
-    zIndex: 100,
+    zIndex: 100
   })
 
   const headerBg = new BoxRenderable(renderer, {
@@ -188,7 +187,7 @@ function createProviderList(): void {
     
     border:["right"],
     borderColor: getColors().border,
-    borderStyle: "heavy",
+    borderStyle: "heavy"
   })
 
   const listOptions = {
@@ -205,7 +204,7 @@ function createProviderList(): void {
     showDescription: true,
     showScrollIndicator: true,
     wrapSelection: false,
-    focusable: false,
+    focusable: false
   }
 
   providerSelect = new SelectRenderable(renderer, listOptions as any)
@@ -331,6 +330,7 @@ function createStatusBar(): void {
   renderer.root.add(statusBg)
   renderer.root.add(statusContainer)
   statusContainer.add(versionText)
+  
 }
 
 export function updateStatus(message: string): void {
@@ -346,11 +346,27 @@ export function refreshProviderList(): void {
 
   if (!providerSelect) return
 
+  // providerSelect.onMouseMove = (event: any) => {
+    
+  //   const index = Math.floor(event.y % event.target.y / 2)
+
+  //   if (providerSelect) {
+  //     providerSelect.setSelectedIndex(Math.min(index, providerSelect.options.length - 1))
+  //   }
+  //   // if (providerSelect && mainContainer) {
+  //   //   const mcTop = typeof mainContainer.top === "number" ? mainContainer.top : parseInt(mainContainer.top as string) || 0
+  //   //   const index = event.y - mcTop - 1
+  //   //   if (index >= 0) {
+  //   //     providerSelect.setSelectedIndex(index)
+  //   //   }
+  //   // }
+  // }
+
   const options: SelectOption[] = [
     {
       name: isDefaultActive ? "(Default) ✓" : "(Default)",
       description: "Anthropic official",
-      value: "default",
+      value: "default"
     },
     ...providers.map((p) => {
       const isActive = activeProvider?.id === p.id
