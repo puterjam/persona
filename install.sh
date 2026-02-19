@@ -5,6 +5,19 @@ set -e
 REPO="puterjam/persona"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 FORCE=false
+LOG_FILE="${LOG_FILE:-/dev/null}"
+
+log() {
+    printf '%b\n' "$@" | tee -a "$LOG_FILE" >&2
+}
+
+welcome() {
+    log ""
+    log "█▀█ █▀▀ █▀█ █▀▀ █▀█ █▄ █ ▄▀█"
+    log "█▀▀ ██▄ █▀▄ ▄▄█ █▄█ █ ▀█ █▀█"
+    log "AI Coding CLI Provider Manager"
+    log ""
+}
 
 usage() {
     cat <<EOF
@@ -81,28 +94,28 @@ sync_assets() {
     local themes_dir="$HOME/.persona/themes"
     local templates_dir="$HOME/.persona/templates"
 
-    echo "Syncing themes and templates..."
+    log "Syncing themes and templates..."
 
     mkdir -p "$themes_dir"
     for theme in persona gruvbox dracula nord; do
-        curl -fsSL "https://raw.githubusercontent.com/$REPO/refs/heads/dev/themes/${theme}.json" -o "$themes_dir/${theme}.json" || true
+        curl -fsSL "https://raw.githubusercontent.com/$REPO/refs/heads/dev/themes/${theme}.json" -o "$themes_dir/${theme}.json" 2>> "$LOG_FILE" || true
     done
-    echo "Synced themes to $themes_dir"
+    log "Synced themes to $themes_dir"
 
     mkdir -p "$templates_dir"
-    local categories=$(curl -fsSL "https://api.github.com/repos/$REPO/contents/templates" | grep '"name"' | grep -o '/templates/[^"]*' | cut -d'/' -f3 | sort -u || echo "claude")
+    local categories=$(curl -fsSL "https://api.github.com/repos/$REPO/contents/templates" 2>> "$LOG_FILE" | grep '"name"' | grep -o '/templates/[^"]*' | cut -d'/' -f3 | sort -u || echo "claude")
     
     for cat in $categories; do
         local cat_dir="$templates_dir/$cat"
         mkdir -p "$cat_dir"
-        local files=$(curl -fsSL "https://api.github.com/repos/$REPO/contents/templates/$cat" 2>/dev/null | grep '"name"' | grep -o '"[^"]*\.json"' | tr -d '"' || true)
+        local files=$(curl -fsSL "https://api.github.com/repos/$REPO/contents/templates/$cat" 2>> "$LOG_FILE" | grep '"name"' | grep -o '"[^"]*\.json"' | tr -d '"' || true)
         for file in $files; do
-            curl -fsSL "https://raw.githubusercontent.com/$REPO/refs/heads/dev/templates/$cat/$file" -o "$cat_dir/$file" 2>/dev/null || true
+            curl -fsSL "https://raw.githubusercontent.com/$REPO/refs/heads/dev/templates/$cat/$file" -o "$cat_dir/$file" 2>> "$LOG_FILE" || true
         done
     done
     
     if [[ -d "$templates_dir/claude" ]]; then
-        echo "Synced templates to $templates_dir"
+        log "Synced templates to $templates_dir"
     fi
 }
 
@@ -112,43 +125,45 @@ install() {
     local tmp_dir
     tmp_dir=$(mktemp -d)
 
-    echo "Installing persona v${version} for ${OS}-${ARCH}..."
+    welcome
+    log "Installing persona \033[31mv${version}\033[0m for ${OS}-${ARCH}..."
 
     mkdir -p "$INSTALL_DIR"
 
     local zip_path="$tmp_dir/persona.zip"
-    curl -fSL "$download_url" -o "$zip_path"
-    unzip -o "$zip_path" -d "$tmp_dir"
+    curl -sfSL "$download_url" -o "$zip_path" 2>> "$LOG_FILE"
+    unzip -o "$zip_path" -d "$tmp_dir" 2>> "$LOG_FILE"
     local binary_path
     binary_path=$(ls "$tmp_dir"/persona-*-bun-${OS}-${ARCH})
     chmod +x "$binary_path"
 
+    log ""
     if [[ "$INSTALL_DIR" == /usr/local/bin/* ]] && [[ -z "$SUDO_USER" ]]; then
-        echo "Error: Installing to $INSTALL_DIR requires sudo"
+        log "Error: Installing to $INSTALL_DIR requires sudo"
         rm -rf "$tmp_dir"
         exit 1
     fi
 
     if [[ -f "$INSTALL_DIR/persona" ]] && [[ "$FORCE" != "true" ]]; then
-        echo "persona is already installed at $INSTALL_DIR/persona"
-        echo "Use -f to force reinstall"
-        rm -rf "$tmp_dir"
-        exit 0
+        log "persona is already installed, updating..."
+        SKIP_SYNC=true
     fi
 
     cp "$binary_path" "$INSTALL_DIR/persona"
 
-    sync_assets
+    if [[ "$SKIP_SYNC" != "true" ]]; then
+        sync_assets
+    fi
 
-    echo "Installed persona to $INSTALL_DIR/persona"
-    echo ""
-    echo "Run 'persona sync' to download the latest templates and themes"
+    log "Installed persona to $INSTALL_DIR/persona"
+    log ""
+    log "Run \033[32mpersona sync\033[0m to download the latest templates and themes"
 
     if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
-        echo ""
-        echo "Warning: $INSTALL_DIR is not in your PATH"
-        echo "Add the following to your shell profile:"
-        echo "  export PATH=\"\$PATH:$INSTALL_DIR\""
+        log ""
+        log "Warning: $INSTALL_DIR is not in your PATH"
+        log "Add the following to your shell profile:"
+        log "  export PATH=\"\$PATH:$INSTALL_DIR\""
     fi
 }
 
