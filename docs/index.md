@@ -16,7 +16,7 @@ AI Coding CLI Provider Manager
 
 </div>
 
-<img src="https://github.com/puterjam/persona/blob/dev/docs/screenshot.png?raw=true" width="50%" />
+<img class="screenshot" src="https://github.com/puterjam/persona/blob/dev/docs/screenshot.png?raw=true" width="50%" />
 
 <style>
 .badges {
@@ -24,6 +24,9 @@ AI Coding CLI Provider Manager
   gap: 0.5rem;
   justify-content: center;
   flex-wrap: wrap;
+}
+.screenshot {
+  border-radius: 8px;
 }
 </style>
 
