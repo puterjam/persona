@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import { configStore } from '../config/store';
 import { GeneralConfig } from '../types';
-import { maskApiKey } from '../utils/mask';
+import { maskApiKey } from '../utils/crypto/mask';
 import { getThemeNames, loadTheme } from '../utils/theme';
 
 const DEFAULT_CONFIG = `{

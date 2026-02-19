@@ -1,32 +1,21 @@
 import { useState, useEffect, useCallback, useRef } from "react"
-import { useRenderer, useKeyboard } from "@opentui/react"
+import { useKeyboard } from "@opentui/react"
 import type { CliRenderer, SelectOption } from "@opentui/core"
 import type { Provider } from "../../types"
 import { configStore } from "../../config/store"
 import { getThemeColors, loadTheme, getThemeNames, setThemeColors } from "../../utils/theme"
-import { testProvider } from "../../utils/api"
-import { Header } from "./Header"
-import { StatusBar } from "./StatusBar"
+import { Header } from "./layout/Header"
+import { StatusBar } from "./layout/StatusBar"
 import { DetailPanel } from "./DetailPanel"
+import { ProviderList } from "./ProviderList"
 import { ConfirmDialog } from "./dialogs/ConfirmDialog"
 import { InputDialog } from "./dialogs/InputDialog"
 import { ListDialog } from "./dialogs/ListDialog"
 import { getTemplateNames, getTemplateByFullName } from "../../config/templates"
-import { saveProvider, ProviderFormDefaults } from "../../commands/add"
 import { VERSION } from "../../version"
-
-interface DetailContent {
-  type: "default" | "provider" | "ping" | "message"
-  provider?: Provider
-  isActive?: boolean
-  message?: string
-  pingResult?: {
-    success: boolean
-    latency?: number
-    timingBreakdown?: { dns?: string; connect?: string; ttfb?: string; api?: string }
-    error?: string
-  }
-}
+import { useProviders } from "../hooks/useProviders"
+import { useDialogs } from "../hooks/useDialogs"
+import type { DetailContent } from "./types/detail"
 
 interface TuiAppProps {
   renderer: CliRenderer
@@ -37,34 +26,36 @@ export function TuiApp({ renderer }: TuiAppProps) {
 
   const themeColors = getThemeColors()
   const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [providers, setProviders] = useState<Provider[]>([])
-  const [activeProvider, setActiveProvider] = useState<Provider | null>(null)
+
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [statusMessage, setStatusMessage] = useState(defaultStatus)
   const [detailContent, setDetailContent] = useState<DetailContent | null>(null)
   const [listContainerKey, setListContainerKey] = useState(0)
   const [selectFocused, setSelectFocused] = useState(true)
-  
-  const [dialogState, setDialogState] = useState<{
-    type: "confirm" | "input" | "list" | null
-    data: any
-    resolve: ((value: any) => void) | null
-  }>({ type: null, data: {}, resolve: null })
 
-  const loadProviders = useCallback(() => {
-    const loadedProviders = configStore.getProviders()
-    console.error('[DEBUG] loadProviders called, providers:', loadedProviders.length, loadedProviders.map(p => p.name))
-    setProviders(loadedProviders)
-    const active = configStore.getActiveProvider()
-    setActiveProvider(active ?? null)
-  }, [])
+  const {
+    providers,
+    activeProvider,
+    loadProviders,
+    deleteProviderById,
+    updateProvider,
+    addProvider,
+    pingProvider
+  } = useProviders()
+
+  const {
+    dialogState,
+    showConfirmDialog,
+    showInputDialog,
+    showListDialog,
+    closeDialog
+  } = useDialogs()
 
   useEffect(() => {
-    loadProviders()
-  }, [loadProviders])
+    setSelectFocused(dialogState.type === null)
+  }, [dialogState.type])
 
-
-  const updateStatus = (msg: string) => {
+  const updateStatus = useCallback((msg: string) => {
     setStatusMessage(msg)
     if (statusTimeoutRef.current) {
       clearTimeout(statusTimeoutRef.current)
@@ -72,91 +63,52 @@ export function TuiApp({ renderer }: TuiAppProps) {
     statusTimeoutRef.current = setTimeout(() => {
       setStatusMessage(defaultStatus)
     }, 2000)
-  }
+  }, [defaultStatus])
 
-  const showDefaultDetails = () => {
-    const isDefaultActive = !activeProvider
-    setDetailContent({
-      type: "default",
-      isActive: isDefaultActive
-    })
-  }
+  const showDefaultDetails = useCallback(() => {
+    setDetailContent({ type: "default", isActive: !activeProvider })
+  }, [activeProvider])
 
-  const showProviderDetails = (provider: Provider) => {
-    const isActive = activeProvider?.id === provider.id
+  const showProviderDetails = useCallback((provider: Provider) => {
     setDetailContent({
       type: "provider",
       provider,
-      isActive
+      isActive: activeProvider?.id === provider.id
     })
-  }
+  }, [activeProvider])
 
   useEffect(() => {
-    if (providers.length === 0) {
-      showDefaultDetails()
-    } else if (selectedIndex === 0) {
+    if (providers.length === 0 || selectedIndex === 0) {
       showDefaultDetails()
     } else if (providers[selectedIndex - 1]) {
       showProviderDetails(providers[selectedIndex - 1])
     }
-  }, [selectedIndex, providers, activeProvider])
+  }, [selectedIndex, providers, showDefaultDetails, showProviderDetails])
 
-  const handleSelectChange = (index: number, option: any) => {
+  const handleSelectChange = useCallback((index: number) => {
     setSelectedIndex(index)
     if (index === 0) {
       showDefaultDetails()
     } else if (providers[index - 1]) {
       showProviderDetails(providers[index - 1])
     }
-  }
+  }, [providers, showDefaultDetails, showProviderDetails])
 
-  const getBorderColor = () => {
-    if (selectedIndex === 0) {
-      return themeColors.border
-    }
+  const getBorderColor = useCallback(() => {
+    if (selectedIndex === 0) return themeColors.border
     const provider = providers[selectedIndex - 1]
     if (provider) {
-      const isActive = activeProvider?.id === provider.id
-      return isActive ? themeColors.primaryLight : themeColors.border
+      return activeProvider?.id === provider.id ? themeColors.primaryLight : themeColors.border
     }
     return themeColors.border
-  }
-
-  const handleSelectItem = async (index: number, option: any) => {
-    if (index === 0) {
-      try {
-        configStore.clearProviderConfig()
-        setActiveProvider(null)
-        loadProviders()
-        showDefaultDetails()
-        updateStatus("Switched to Default (Official)")
-      } catch {
-        showDefaultDetails()
-      }
-    } else if (providers[index - 1]) {
-      const provider = providers[index - 1]
-      try {
-        configStore.applyProviderToClaude(provider, true)
-        configStore.setActiveProvider(provider.id)
-        setActiveProvider(provider)
-        loadProviders()
-        showProviderDetails(provider)
-        updateStatus(`Switched to {${provider.name}}`)
-      } catch {
-        showProviderDetails(provider)
-      }
-    }
-  }
+  }, [selectedIndex, providers, activeProvider, themeColors])
 
   const handlePing = async (provider: Provider) => {
-    setDetailContent({
-      type: "message",
-      message: `Pinging [${provider.name}]...`
-    })
+    setDetailContent({ type: "message", message: `Pinging [${provider.name}]...` })
     updateStatus("Pinging...")
-    
-    const result = await testProvider(provider)
-    
+
+    const result = await pingProvider(provider)
+
     if (result.success) {
       setDetailContent({
         type: "ping",
@@ -175,61 +127,16 @@ export function TuiApp({ renderer }: TuiAppProps) {
     } else {
       setDetailContent({
         type: "ping",
-        pingResult: {
-          success: false,
-          error: result.error || "Unknown error"
-        }
+        pingResult: { success: false, error: result.error || "Unknown error" }
       })
       updateStatus("Ping failed!")
     }
   }
 
-  const showConfirmDialog = (title: string, message: string): Promise<boolean | null> => {
-    return new Promise((resolve) => {
-      setSelectFocused(false)
-      setDialogState({ type: "confirm", data: { title, message }, resolve })
-    })
-  }
-
-  const showInputDialog = (
-    title: string,
-    message: string,
-    defaultValue: string = "",
-    required: boolean = false
-  ): Promise<string | null> => {
-    return new Promise((resolve) => {
-      setSelectFocused(false)
-      setDialogState({ type: "input", data: { title, message, defaultValue, required }, resolve })
-    })
-  }
-
-  const showListDialog = (
-    title: string,
-    choices: { name: string; value: string }[]
-  ): Promise<string | null> => {
-    return new Promise((resolve) => {
-      setSelectFocused(false)
-      setDialogState({ type: "list", data: { title, choices }, resolve })
-    })
-  }
-
-  const handleDialogClose = (result: any) => {
-    if (dialogState.resolve) {
-      dialogState.resolve(result)
-    }
-    setDialogState({ type: null, data: {}, resolve: null })
-    setSelectFocused(true)
-  }
-
   const handleDelete = async (provider: Provider) => {
-    const confirmed = await showConfirmDialog(
-      "Delete Provider",
-      `Are you sure you want to delete "${provider.name}"?`
-    )
-
+    const confirmed = await showConfirmDialog("Delete Provider", `Are you sure you want to delete "${provider.name}"?`)
     if (confirmed) {
-      configStore.deleteProvider(provider.id)
-      loadProviders()
+      deleteProviderById(provider.id)
       setSelectedIndex(0)
       showDefaultDetails()
       updateStatus("Provider deleted")
@@ -237,13 +144,6 @@ export function TuiApp({ renderer }: TuiAppProps) {
   }
 
   const handleEdit = async (provider: Provider) => {
-    // setDetailContent({
-    //   type: "message",
-    //   message: `Editing ${provider.name}...`
-    // })
-    // updateStatus("Editing provider...")
-
-   
     const name = await showInputDialog("Edit Name", "Name", provider.name, true)
     if (name === null) return
 
@@ -252,8 +152,6 @@ export function TuiApp({ renderer }: TuiAppProps) {
 
     const apiKey = await showInputDialog("Edit API Key", "API Key (leave empty to keep current)", "")
     if (apiKey === null) return
-
-    const apiFormat = provider.apiFormat
 
     const defaultModel = await showInputDialog("Edit Default Model", "Default Model", provider.models.default || "", true)
     if (defaultModel === null) return
@@ -270,7 +168,7 @@ export function TuiApp({ renderer }: TuiAppProps) {
     const updates: Partial<Provider> = {
       name: name || provider.name,
       baseUrl: baseUrl || provider.baseUrl,
-      apiFormat: apiFormat,
+      apiFormat: provider.apiFormat,
       models: {
         default: defaultModel || undefined,
         haiku: haikuModel || undefined,
@@ -279,43 +177,28 @@ export function TuiApp({ renderer }: TuiAppProps) {
       }
     }
 
-     console.log("Editing provider:", updates)
+    if (apiKey) updates.apiKey = apiKey
 
-    if (apiKey) {
-      updates.apiKey = apiKey
-    }
-
-    configStore.updateProvider(provider.id, updates)
-
-    loadProviders()
-    setDetailContent({
-      type: "message",
-      message: `✓ Provider "${name}" updated successfully!`
-    })
+    updateProvider(provider.id, updates)
+    setDetailContent({ type: "message", message: `✓ Provider "${name}" updated successfully!` })
     updateStatus("Provider updated")
   }
 
   const handleAddProvider = async () => {
-    let defaults: ProviderFormDefaults = {}
-    
-    const useTemplate = await showConfirmDialog(
-      "Use Provider Template",
-      "Would you like to use a provider template?"
-    )
-    
+    let defaults: { name?: string; website?: string; baseUrl?: string; apiFormat?: 'anthropic-messages' | 'openai-completions'; models?: { default?: string; haiku?: string; opus?: string; sonnet?: string } } = {}
+
+    const useTemplate = await showConfirmDialog("Use Provider Template", "Would you like to use a provider template?")
     if (useTemplate === null) return
-    
+
     if (useTemplate) {
       const templateNames = getTemplateNames()
       const choices = templateNames.map((name: string) => {
         const t = getTemplateByFullName(name)
         return { name: `${t?.name} - ${t?.description}`, value: name }
       })
-      
       const selectedTemplate = await showListDialog("Select a Template", choices)
-      
       if (!selectedTemplate) return
-      
+
       const template = getTemplateByFullName(selectedTemplate)
       if (template) {
         defaults = {
@@ -327,36 +210,33 @@ export function TuiApp({ renderer }: TuiAppProps) {
         }
       }
     }
-    
+
     const name = await showInputDialog("Enter Provider Name", "Provider Name", defaults.name || "", true)
     if (!name) return
-    
+
     const website = await showInputDialog("Enter Website URL", "Website URL", defaults.website || "https://example.com")
     if (!website) return
-    
+
     const baseUrl = await showInputDialog("Enter API Base URL", "API Base URL", defaults.baseUrl || "", true)
     if (!baseUrl) return
-    
+
     const apiKey = await showInputDialog("Enter API Key", "API Key", "", true)
     if (!apiKey) return
-    
+
     const defaultModel = await showInputDialog("Default Model", "Default model name:", defaults.models?.default || "", true)
     if (defaultModel === null) return
-    
+
     const haikuModel = await showInputDialog("Haiku Model", "Haiku model name (optional):", defaults.models?.haiku || "")
     if (haikuModel === null) return
-    
+
     const opusModel = await showInputDialog("Opus Model", "Opus model name (optional):", defaults.models?.opus || "")
     if (opusModel === null) return
-    
+
     const sonnetModel = await showInputDialog("Sonnet Model", "Sonnet model name (optional):", defaults.models?.sonnet || "")
     if (sonnetModel === null) return
-    
-    const provider = saveProvider({
-      name,
-      website,
-      baseUrl,
-      apiKey,
+
+    const provider = addProvider({
+      name, website, baseUrl, apiKey,
       apiFormat: "anthropic-messages",
       models: {
         default: defaultModel || undefined,
@@ -365,16 +245,10 @@ export function TuiApp({ renderer }: TuiAppProps) {
         sonnet: sonnetModel || undefined,
       },
     })
-    
-    loadProviders()
+
     setDetailContent({
       type: "message",
-      message: `
-✓ Provider "${provider.name}" added successfully!
-Provider ID: ${provider.id}
-
-Select a provider to view details.
-`
+      message: `✓ Provider "${provider.name}" added successfully!\nProvider ID: ${provider.id}\n\nSelect a provider to view details.`
     })
     updateStatus(`Provider "${provider.name}" added`)
   }
@@ -388,7 +262,6 @@ Select a provider to view details.
     }))
 
     const selectedTheme = await showListDialog("Select Theme", choices)
-    
     if (selectedTheme && selectedTheme !== currentThemeName) {
       configStore.setTheme(selectedTheme)
       loadTheme(selectedTheme)
@@ -397,147 +270,72 @@ Select a provider to view details.
     }
   }
 
+  const handleSelectProvider = (index: number) => {
+    if (index === 0) {
+      configStore.clearProviderConfig()
+      loadProviders()
+      showDefaultDetails()
+      updateStatus("Switched to Default (Official)")
+    } else if (providers[index - 1]) {
+      const provider = providers[index - 1]
+      configStore.applyProviderToClaude(provider, true)
+      configStore.setActiveProvider(provider.id)
+      loadProviders()
+      showProviderDetails(provider)
+      updateStatus(`Switched to {${provider.name}}`)
+    }
+  }
+
   useKeyboard((key) => {
-    // Check current dialog state - dialogs handle their own keyboard events
     if (dialogState.type !== null) return
 
     switch (key.name) {
-      case "a":
-        handleAddProvider()
-        break
-      case "e":
-        if (providers[selectedIndex - 1]) {
-          handleEdit(providers[selectedIndex - 1])
-        }
-        break
-      case "p":
-        if (providers[selectedIndex - 1]) {
-          handlePing(providers[selectedIndex - 1])
-        }
-        break
-      case "d":
-        if (providers[selectedIndex - 1]) {
-          handleDelete(providers[selectedIndex - 1])
-        }
-        break
-      case "r":
-        loadProviders()
-        setListContainerKey((k: number) => k + 1)
-        updateStatus("Refreshed")
-        break
-      case "t":
-        handleThemeSwitch()
-        break
-      case "q":
-        renderer.destroy()
-        break
+      case "a": handleAddProvider(); break
+      case "e": providers[selectedIndex - 1] && handleEdit(providers[selectedIndex - 1]); break
+      case "p": providers[selectedIndex - 1] && handlePing(providers[selectedIndex - 1]); break
+      case "d": providers[selectedIndex - 1] && handleDelete(providers[selectedIndex - 1]); break
+      case "r": loadProviders(); setListContainerKey(k => k + 1); updateStatus("Refreshed"); break
+      case "t": handleThemeSwitch(); break
+      case "q": renderer.destroy(); break
     }
   }, { release: false })
 
   const listOptions: SelectOption[] = [
     { name: !activeProvider ? "(Default) ✓" : "(Default)", description: "Anthropic official", value: "default" },
-    ...providers.map((p: Provider) => {
-      const isActive = activeProvider?.id === p.id
-      return { name: isActive ? `${p.name} ✓` : p.name, description: p.models.default || "", value: p.id }
-    })
+    ...providers.map((p: Provider) => ({
+      name: activeProvider?.id === p.id ? `${p.name} ✓` : p.name,
+      description: p.models.default || "",
+      value: p.id
+    }))
   ]
 
-    renderer.setBackgroundColor(themeColors.bg) 
+  renderer.setBackgroundColor(themeColors.bg)
 
   return (
     <>
       <Header colors={themeColors} version={VERSION} />
-      
-      <box
-        position="absolute"
-        top={0}
-        left={0}
-        width="100%"
-        height="100%"
-        justifyContent="center"
-        alignItems="center"
-        paddingTop={8}
-        paddingBottom={5}
-      >
-        <box
-          flexDirection="row"
-          width="70%"
-          height="100%"
-        >
-        <box
-          key={listContainerKey}
-          width="30%"
-          height="100%"
-          left={-1}
-          flexGrow={0}
-          flexShrink={0}
-          paddingX={2}
-          paddingY={1}
-          backgroundColor={themeColors.bgLight}
-          border={["right"]}
-          borderColor={getBorderColor()}
-          borderStyle="heavy"
-        >
-          <select
+
+      <box position="absolute" top={0} left={0} width="100%" height="100%" justifyContent="center" alignItems="center" paddingTop={8} paddingBottom={5}>
+        <box flexDirection="row" width="70%" height="100%">
+          <ProviderList
+            key={listContainerKey}
             options={listOptions}
-            width="100%"
-            height="100%"
             selectedIndex={selectedIndex}
-            onChange={handleSelectChange}
-            onSelect={handleSelectItem}
             focused={selectFocused}
-            textColor={themeColors.text}
-            backgroundColor="transparent"
-            focusedBackgroundColor="transparent"
-            focusedTextColor={themeColors.text}
-            selectedBackgroundColor={themeColors.selected}
-            selectedTextColor={themeColors.selectedText}
-            descriptionColor={themeColors.textMuted}
-            showDescription={true}
-            showScrollIndicator={true}
-            wrapSelection={false}
+            borderColor={getBorderColor()}
+            colors={themeColors}
+            onChange={(idx) => handleSelectChange(idx)}
+            onSelect={handleSelectProvider}
           />
+          <DetailPanel content={detailContent} colors={themeColors} />
         </box>
-        
-        <DetailPanel
-          content={detailContent}
-          colors={themeColors}
-        />
       </box>
-      </box>
-      
-      <StatusBar
-        message={statusMessage}
-        colors={themeColors}
-        version={VERSION}
-      />
-      
-      {dialogState.type === "confirm" && (
-        <ConfirmDialog
-          title={dialogState.data.title}
-          message={dialogState.data.message}
-          onClose={handleDialogClose}
-        />
-      )}
-      
-      {dialogState.type === "input" && (
-        <InputDialog
-          key={dialogState.data.title + dialogState.data.defaultValue}
-          title={dialogState.data.title}
-          message={dialogState.data.message}
-          defaultValue={dialogState.data.defaultValue}
-          required={dialogState.data.required}
-          onClose={handleDialogClose}
-        />
-      )}
-      
-      {dialogState.type === "list" && (
-        <ListDialog
-          title={dialogState.data.title}
-          choices={dialogState.data.choices}
-          onClose={handleDialogClose}
-        />
-      )}
+
+      <StatusBar message={statusMessage} colors={themeColors} version={VERSION} />
+
+      {dialogState.type === "confirm" && <ConfirmDialog title={dialogState.data.title} message={dialogState.data.message} onClose={closeDialog} />}
+      {dialogState.type === "input" && <InputDialog key={dialogState.data.title + dialogState.data.defaultValue} title={dialogState.data.title} message={dialogState.data.message} defaultValue={dialogState.data.defaultValue} required={dialogState.data.required} onClose={closeDialog} />}
+      {dialogState.type === "list" && <ListDialog title={dialogState.data.title} choices={dialogState.data.choices} onClose={closeDialog} />}
     </>
   )
 }

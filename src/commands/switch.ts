@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { configStore } from '../config/store';
 import { Provider } from '../types';
-import { maskApiKey } from '../utils/mask';
+import { maskApiKey } from '../utils/crypto/mask';
 import { API_FORMAT_OPTIONS } from '../utils/constants';
 
 export async function switchProviderInteractive(): Promise<void> {

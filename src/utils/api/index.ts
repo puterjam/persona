@@ -5,7 +5,7 @@ import * as https from 'https';
 import * as http from 'http';
 import * as dns from 'dns';
 import { URL } from 'url';
-import { Provider, TestResult } from '../types';
+import { Provider, TestResult } from '../../types';
 
 function getApiEndpoints(baseUrl: string, apiFormat: string): string[] {
   let url = baseUrl.replace(/\/$/, '');
@@ -51,7 +51,6 @@ async function measureConnectionTiming(urlStr: string): Promise<TimingResult> {
     const isHttps = urlObj.protocol === 'https:';
     const hostname = urlObj.hostname;
     
-    // Step 1: DNS lookup
     dns.lookup(hostname, (err) => {
       if (err) {
         timings.dns = Date.now() - startTime;
@@ -62,7 +61,6 @@ async function measureConnectionTiming(urlStr: string): Promise<TimingResult> {
       
       timings.dns = Date.now() - startTime;
       
-      // Step 2: TCP + TLS connection
       const connectStart = Date.now();
       
       if (isHttps) {
@@ -77,7 +75,7 @@ async function measureConnectionTiming(urlStr: string): Promise<TimingResult> {
         const req = https.request(options, (res) => {
           timings.ttfb = Date.now() - startTime;
           timings.connect = connectStart - startTime;
-          timings.tls = timings.ttfb - timings.connect; // approximate
+          timings.tls = timings.ttfb - timings.connect;
           res.destroy();
           resolve(timings);
         });
@@ -134,15 +132,12 @@ export async function testProvider(provider: Provider): Promise<TestResult> {
 
   const overallStart = Date.now();
 
-  // Get possible endpoints
   const endpoints = getApiEndpoints(provider.baseUrl, provider.apiFormat);
 
-  // First, measure connection timing with HEAD request to the host
   const hostUrl = new URL(provider.baseUrl.replace(/\/$/, ''));
   const connUrl = `${hostUrl.protocol}//${hostUrl.host}/`;
   const connTiming = await measureConnectionTiming(connUrl);
 
-  // Then measure full API request timing
   for (const endpoint of endpoints) {
     const requestStart = Date.now();
     
@@ -191,30 +186,22 @@ export async function testProvider(provider: Provider): Promise<TestResult> {
       result.model = provider.models.default || provider.models.haiku;
       result.endpoint = endpoint;
       
-      // Calculate timing breakdown
       const breakdown: Record<string, number> = {};
       
-      // DNS lookup
       if (connTiming.dns > 0) {
         breakdown.dns = connTiming.dns;
       }
       
-      // Connection (TCP + TLS)
       if (connTiming.tls > 0) {
         breakdown.connect = connTiming.tls - connTiming.dns;
       } else if (connTiming.connect > 0) {
         breakdown.connect = connTiming.connect - connTiming.dns;
       }
       
-      // TLS handshake (if HTTPS)
-      // Note: TLS time is included in connect for HTTPS
-      
-      // Time to first byte
       if (connTiming.ttfb > 0) {
         breakdown.ttfb = connTiming.ttfb - connTiming.connect;
       }
       
-      // API request time (includes sending request, server processing, receiving response)
       breakdown.api = requestDone - requestStart;
       
       result.timingBreakdown = breakdown;

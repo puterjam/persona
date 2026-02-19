@@ -1,10 +1,7 @@
 #!/usr/bin/env bun
 
-// Set UTF-8 locale for TUI Chinese character display
 process.env.LC_ALL = 'en_US.UTF-8';
 process.env.LANG = 'en_US.UTF-8';
-
-// Persona - CLI tool to switch Claude CLI configurations
 
 import chalk from 'chalk';
 import { parseArgs } from 'util';
@@ -19,85 +16,8 @@ import { showTheme, listThemes, setTheme } from './commands/theme';
 import { showEnvConfig, editEnvConfig } from './commands/env';
 import { syncAssets } from './commands/sync';
 import { startInteractiveMode } from './tui';
-
-const commands = {
-  ls: {
-    description: 'List all configured providers',
-    usage: 'persona list'
-  },
-  use: {
-    description: 'Switch to a provider',
-    usage: 'persona use <provider-id>'
-  },
-  add: {
-    description: 'Add a new provider (interactive or with flags)',
-    usage: 'persona add [--template <name>] [--name <name>] [--base-url <url>] [--api-key <key>] [--api-format <format>] [--default-model <model>] [--haiku-model <model>] [--opus-model <model>] [--sonnet-model <model>]'
-  },
-  edit: {
-    description: 'Edit an existing provider',
-    usage: 'persona edit <provider-id> [--name <name>] [--base-url <url>] [--api-key <key>] [--api-format <format>]'
-  },
-  remove: {
-    aliases: ['rm', 'del'],
-    description: 'Delete a provider',
-    usage: 'persona remove <provider-id>'
-  },
-  ping: {
-    description: 'Test provider API connection',
-    usage: 'persona ping [provider-id]'
-  },
-  info: {
-    description: 'Show current status',
-    usage: 'persona status'
-  },
-  templates: {
-    aliases: ['template'],
-    description: 'List available provider templates',
-    usage: 'persona templates'
-  },
-  theme: {
-    description: 'Manage themes (list, show, set)',
-    usage: 'persona theme [list|<name>]'
-  },
-  env: {
-    description: 'Manage environment variable overrides',
-    usage: 'persona env [edit|show]'
-  },
-  sync: {
-    description: 'Sync templates and themes from GitHub',
-    usage: 'persona sync [--templates] [--themes] [--all] [--force]'
-  },
-  help: {
-    aliases: ['h', '?'],
-    description: 'Show help information',
-    usage: 'persona help [command]'
-  }
-};
-
-function showHelp(command?: string): void {
-  if (command && commands[command as keyof typeof commands]) {
-    const cmd = commands[command as keyof typeof commands];
-    console.log(chalk.bold(`\nUsage: ${cmd.usage}\n`));
-    console.log(`${cmd.description}\n`);
-  } else {
-    console.log(chalk.bold('\nPersona - AI Coding CLI Provider Manager\n'));
-    console.log('Usage: persona <command> [options]\n');
-    console.log(chalk.bold('Commands:'));
-
-    Object.entries(commands).forEach(([name, cmd]) => {
-      const aliases = cmd.aliases ? ` (${cmd.aliases.join(', ')})` : '';
-      console.log(`  ${name}${aliases}`);
-      console.log(`    ${cmd.description}`);
-    });
-
-    console.log(chalk.bold('\nExamples:'));
-    console.log('  persona list');
-    console.log('  persona use abc12345');
-    console.log('  persona add --template openai --api-key sk-xxx');
-    console.log('  persona ping');
-    console.log();
-  }
-}
+import { aliasMap, commands } from './cli/commands';
+import { showHelp } from './cli/help';
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -108,21 +28,6 @@ async function main(): Promise<void> {
   }
 
   const command = args[0];
-
-  // Handle aliases
-  const aliasMap: Record<string, string> = {
-    ls: 'list',
-    new: 'add',
-    delete: 'remove',
-    rm: 'remove',
-    del: 'remove',
-    info: 'status',
-    current: 'status',
-    template: 'templates',
-    h: 'help',
-    '?': 'help'
-  };
-
   const resolvedCommand = aliasMap[command] || command;
 
   try {
@@ -133,7 +38,6 @@ async function main(): Promise<void> {
       }
 
       case 'use': {
-        // Parse options for use command
         const parsed = parseArgs({
           args: args.slice(1),
           options: {
@@ -148,7 +52,6 @@ async function main(): Promise<void> {
         if (remainingArgs.length < 1 && !shouldUpdate) {
           await switchProviderInteractive();
         } else if (shouldUpdate) {
-          // Update Claude config without switching provider
           const { updateClaudeConfig } = await import('./commands/switch');
           updateClaudeConfig();
         } else {
@@ -158,7 +61,6 @@ async function main(): Promise<void> {
       }
 
       case 'add': {
-        // Parse additional arguments
         const parsed = parseArgs({
           args: args.slice(1),
           options: {

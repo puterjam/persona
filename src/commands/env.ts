@@ -3,7 +3,7 @@ import { execSync } from 'child_process';
 import * as fs from 'fs';
 import { configStore } from '../config/store';
 import { GeneralConfig } from '../types';
-import { maskApiKey } from '../utils/mask';
+import { maskApiKey } from '../utils/crypto/mask';
 
 const DEFAULT_ENV_CONFIG = `{
   "CLAUDE_API_KEY": "",

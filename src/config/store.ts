@@ -117,19 +117,13 @@ export class ConfigStore {
     }
   }
 
-  applyProviderToClaude(provider: Provider, updateClaude: boolean = false): void {
-    const settings = this.getClaudeSettings();
+  private buildEnvFromGeneralConfig(): { env: Record<string, string>; mergedSettings: Record<string, any> } {
     const env: Record<string, string> = {};
-    const mergedSettings: any = {};
+    const mergedSettings: Record<string, any> = {};
 
-    // Apply general config first (lower priority)
-    // - Nested objects (like statusLine) go to root level
-    // - Flat key-values go to env
-    // - Special case: "env" object should be flattened into settings.env
     const generalConfig = this.getGeneralConfig();
     for (const [key, value] of Object.entries(generalConfig)) {
       if (key === 'env' && typeof value === 'object' && value !== null) {
-        // Special case: merge env object into settings.env
         for (const [envKey, envValue] of Object.entries(value)) {
           if (typeof envValue === 'string') {
             env[envKey] = envValue;
@@ -138,7 +132,6 @@ export class ConfigStore {
           }
         }
       } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-        // Nested object - keep at root level
         mergedSettings[key] = value;
       } else if (typeof value === 'string') {
         env[key] = value;
@@ -147,14 +140,18 @@ export class ConfigStore {
       }
     }
 
-    // Apply provider config (higher priority, can override general)
-    // Set base URL
-    env['ANTHROPIC_BASE_URL'] = provider.baseUrl;
+    return { env, mergedSettings };
+  }
 
-    // Set API token
+  applyProviderToClaude(provider: Provider, updateClaude: boolean = false): void {
+    const settings = this.getClaudeSettings();
+    const { env: baseEnv, mergedSettings } = this.buildEnvFromGeneralConfig();
+
+    const env = { ...baseEnv };
+
+    env['ANTHROPIC_BASE_URL'] = provider.baseUrl;
     env['ANTHROPIC_AUTH_TOKEN'] = provider.apiKey;
 
-    // Set models
     if (provider.models.haiku) {
       env['ANTHROPIC_DEFAULT_HAIKU_MODEL'] = provider.models.haiku;
     }
@@ -168,10 +165,8 @@ export class ConfigStore {
       env['ANTHROPIC_MODEL'] = provider.models.default;
     }
 
-    // Set API format hint via custom env var
     env['ANTHROPIC_API_FORMAT'] = provider.apiFormat;
 
-    // Set extra environment variables from provider
     if (provider.extraEnv) {
       for (const [key, value] of Object.entries(provider.extraEnv)) {
         env[key] = value;
@@ -180,7 +175,6 @@ export class ConfigStore {
 
     settings.env = env;
 
-    // Merge nested objects (like statusLine) into settings
     for (const [key, value] of Object.entries(mergedSettings)) {
       if (key !== 'env') {
         settings[key] = value;
@@ -194,39 +188,19 @@ export class ConfigStore {
 
   applyGeneralConfigOnly(): void {
     const settings = this.getClaudeSettings();
-    const env: Record<string, string> = {};
-    const mergedSettings: any = {};
+    const { env: baseEnv, mergedSettings } = this.buildEnvFromGeneralConfig();
 
-    // Only apply general config, clear provider-specific keys
+    const env: Record<string, string> = {};
     for (const key of PROVIDER_ENV_KEYS) {
-      delete env[key];
+      delete baseEnv[key];
     }
 
-    // Apply general config - nested objects go to root, flat values go to env
-    // Special case: "env" object should be flattened into settings.env
-    const generalConfig = this.getGeneralConfig();
-    for (const [key, value] of Object.entries(generalConfig)) {
-      if (key === 'env' && typeof value === 'object' && value !== null) {
-        // Special case: merge env object into settings.env
-        for (const [envKey, envValue] of Object.entries(value)) {
-          if (typeof envValue === 'string') {
-            env[envKey] = envValue;
-          } else if (typeof envValue === 'number' || typeof envValue === 'boolean') {
-            env[envKey] = String(envValue);
-          }
-        }
-      } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-        mergedSettings[key] = value;
-      } else if (typeof value === 'string') {
-        env[key] = value;
-      } else if (typeof value === 'number' || typeof value === 'boolean') {
-        env[key] = String(value);
-      }
+    for (const [key, value] of Object.entries(baseEnv)) {
+      env[key] = value;
     }
 
     settings.env = env;
 
-    // Merge nested objects
     for (const [key, value] of Object.entries(mergedSettings)) {
       if (key !== 'env') {
         settings[key] = value;
