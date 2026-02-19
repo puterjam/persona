@@ -141,6 +141,8 @@ install() {
     sync_assets
 
     echo "Installed persona to $INSTALL_DIR/persona"
+    echo ""
+    echo "Run 'persona sync' to download the latest templates and themes"
 
     if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
         echo ""

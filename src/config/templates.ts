@@ -1,21 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { ProviderTemplate } from '../types';
+import { findWorkDir } from '../utils/workdir';
 
 const USER_TEMPLATES_DIR = path.join(process.env.HOME || process.env.USERPROFILE || '/root', '.persona', 'templates');
 
-function findProjectTemplatesDir(): string | null {
-  const personaRoot = process.env.PERSONA_ROOT;
-  if (personaRoot) {
-    const p = path.join(personaRoot, 'templates');
-    if (fs.existsSync(p) && fs.statSync(p).isDirectory()) {
-      return p;
-    }
-  }
-  return null;
-}
-
-const PROJECT_TEMPLATES_DIR = findProjectTemplatesDir();
+const PROJECT_TEMPLATES_DIR = findWorkDir('templates');
 
 interface TemplateCategory {
   name: string;

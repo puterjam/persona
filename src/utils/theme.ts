@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { findWorkDir } from './workdir';
 
 export interface ThemeColors {
   primary: string;
@@ -64,18 +65,7 @@ let currentTheme: ThemeColors = defaultTheme.colors;
 
 const USER_THEMES_DIR = path.join(process.env.HOME || process.env.USERPROFILE || '/root', '.persona', 'themes');
 
-function findProjectThemesDir(): string | null {
-  const personaRoot = process.env.PERSONA_ROOT;
-  if (personaRoot) {
-    const p = path.join(personaRoot, 'themes');
-    if (fs.existsSync(p) && fs.statSync(p).isDirectory()) {
-      return p;
-    }
-  }
-  return null;
-}
-
-const PROJECT_THEMES_DIR = findProjectThemesDir();
+const PROJECT_THEMES_DIR = findWorkDir('themes');
 
 const builtInThemes: Record<string, ThemeConfig> = {
   persona: {
