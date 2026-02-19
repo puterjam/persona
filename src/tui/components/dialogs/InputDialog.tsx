@@ -17,7 +17,7 @@ export function InputDialog({ title, message, defaultValue = "", required = fals
 
   const dialogWidth = layout.dialogMaxWidth
   const dialogHeight = 9
-  const padding = 2
+  const padding = 3
   const dialogLeft = Math.floor((renderer.width - dialogWidth) / 2)
   const dialogTop = Math.floor((renderer.height - dialogHeight) / 2)
 
@@ -87,10 +87,8 @@ export function InputDialog({ title, message, defaultValue = "", required = fals
           width={dialogWidth - padding * 2 - 2}
           placeholder={defaultValue || "(leave empty to keep current)"}
           focused={true}
-          backgroundColor={colors.bg}
           textColor={colors.text}
           cursorColor={colors.textMuted}
-          focusedBackgroundColor={colors.bg}
           focusedTextColor={colors.text}
           placeholderColor={colors.textMuted}
           zIndex={202}
@@ -101,7 +99,7 @@ export function InputDialog({ title, message, defaultValue = "", required = fals
           top={dialogHeight - 2}
           fg={colors.textMuted}
         >
-          <span fg={colors.textHighlight}>enter</span> to confirm, <span fg={colors.textHighlight}>esc</span> to cancel
+          <span fg={colors.textHighlight}>enter</span> to submit
         </text>
       </box>
     </>

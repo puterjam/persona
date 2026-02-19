@@ -15,7 +15,7 @@ export function ConfirmDialog({ title, message, onClose }: ConfirmDialogProps) {
 
   const dialogWidth = layout.dialogMinWidth
   const dialogHeight = 9
-  const padding = 2
+  const padding = 3
   const dialogLeft = Math.floor((renderer.width - dialogWidth) / 2)
   const dialogTop = Math.floor((renderer.height - dialogHeight) / 2)
 
@@ -69,7 +69,7 @@ export function ConfirmDialog({ title, message, onClose }: ConfirmDialogProps) {
         <text
           position="absolute"
           left={padding}
-          top={3}
+          top={4}
           width={dialogWidth - padding * 2}
         >
           {message}
@@ -77,7 +77,7 @@ export function ConfirmDialog({ title, message, onClose }: ConfirmDialogProps) {
         <box
           position="absolute"
           left={padding}
-          top={5}
+          top={7}
           width={dialogWidth - padding * 2}
           height={1}
           flexDirection="row"

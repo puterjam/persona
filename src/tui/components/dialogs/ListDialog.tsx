@@ -16,7 +16,7 @@ export function ListDialog({ title, choices, onClose }: ListDialogProps) {
   const listHeight = Math.min(choices.length + 2, 10)
   const dialogHeight = listHeight + 6
   const dialogWidth = layout.dialogMaxWidth
-  const padding = 2
+  const padding = 3
   const dialogLeft = Math.floor((renderer.width - dialogWidth) / 2)
   const dialogTop = Math.floor((renderer.height - dialogHeight) / 2)
 
@@ -84,6 +84,7 @@ export function ListDialog({ title, choices, onClose }: ListDialogProps) {
           width={dialogWidth - padding * 2}
           height={listHeight}
           backgroundColor={colors.bgLight}
+          focusedBackgroundColor={colors.bgLight}
           textColor={colors.text}
           selectedBackgroundColor={colors.selected}
           selectedTextColor={colors.selectedText}

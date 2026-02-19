@@ -3,7 +3,7 @@ import { useRenderer, useKeyboard } from "@opentui/react"
 import type { CliRenderer, SelectOption } from "@opentui/core"
 import type { Provider } from "../../types"
 import { configStore } from "../../config/store"
-import { getThemeColors } from "../../utils/theme"
+import { getThemeColors, loadTheme, getThemeNames, setThemeColors } from "../../utils/theme"
 import { testProvider } from "../../utils/api"
 import { Header } from "./Header"
 import { StatusBar } from "./StatusBar"
@@ -33,7 +33,7 @@ interface TuiAppProps {
 }
 
 export function TuiApp({ renderer }: TuiAppProps) {
-  const defaultStatus = "{↑↓} Navigate {enter} use provider {a/e/d} add/edit/del {p} Ping {r} refresh {q} quit"
+  const defaultStatus = "{↑↓} Navigate {enter} use provider {a/e/d} add/edit/del {p} Ping {t} theme {q} quit"
 
   const themeColors = getThemeColors()
   const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -108,6 +108,18 @@ export function TuiApp({ renderer }: TuiAppProps) {
     } else if (providers[index - 1]) {
       showProviderDetails(providers[index - 1])
     }
+  }
+
+  const getBorderColor = () => {
+    if (selectedIndex === 0) {
+      return themeColors.border
+    }
+    const provider = providers[selectedIndex - 1]
+    if (provider) {
+      const isActive = activeProvider?.id === provider.id
+      return isActive ? themeColors.primaryLight : themeColors.border
+    }
+    return themeColors.border
   }
 
   const handleSelectItem = async (index: number, option: any) => {
@@ -225,10 +237,10 @@ export function TuiApp({ renderer }: TuiAppProps) {
   }
 
   const handleEdit = async (provider: Provider) => {
-    setDetailContent({
-      type: "message",
-      message: `Editing ${provider.name}...`
-    })
+    // setDetailContent({
+    //   type: "message",
+    //   message: `Editing ${provider.name}...`
+    // })
     // updateStatus("Editing provider...")
 
    
@@ -367,6 +379,24 @@ Select a provider to view details.
     updateStatus(`Provider "${provider.name}" added`)
   }
 
+  const handleThemeSwitch = async () => {
+    const themeNames = getThemeNames()
+    const currentThemeName = configStore.getTheme()
+    const choices = themeNames.map((name: string) => ({
+      name: name === currentThemeName ? `${name} ✓` : name,
+      value: name
+    }))
+
+    const selectedTheme = await showListDialog("Select Theme", choices)
+    
+    if (selectedTheme && selectedTheme !== currentThemeName) {
+      configStore.setTheme(selectedTheme)
+      loadTheme(selectedTheme)
+      setThemeColors(getThemeColors())
+      updateStatus(`Theme changed to ${selectedTheme}`)
+    }
+  }
+
   useKeyboard((key) => {
     // Check current dialog state - dialogs handle their own keyboard events
     if (dialogState.type !== null) return
@@ -395,6 +425,9 @@ Select a provider to view details.
         setListContainerKey((k: number) => k + 1)
         updateStatus("Refreshed")
         break
+      case "t":
+        handleThemeSwitch()
+        break
       case "q":
         renderer.destroy()
         break
@@ -409,31 +442,40 @@ Select a provider to view details.
     })
   ]
 
-    renderer.setBackgroundColor(themeColors.overlay) 
+    renderer.setBackgroundColor(themeColors.bg) 
 
   return (
     <>
       <Header colors={themeColors} version={VERSION} />
       
       <box
-        flexDirection="row"
         position="absolute"
-        top={7}
-        left={10}
-        width="80%"
-        height={renderer.height - 11}
+        top={0}
+        left={0}
+        width="100%"
+        height="100%"
+        justifyContent="center"
+        alignItems="center"
+        paddingTop={8}
+        paddingBottom={5}
       >
+        <box
+          flexDirection="row"
+          width="70%"
+          height="100%"
+        >
         <box
           key={listContainerKey}
           width="30%"
           height="100%"
+          left={-1}
           flexGrow={0}
           flexShrink={0}
           paddingX={2}
           paddingY={1}
           backgroundColor={themeColors.bgLight}
           border={["right"]}
-          borderColor={themeColors.border}
+          borderColor={getBorderColor()}
           borderStyle="heavy"
         >
           <select
@@ -461,6 +503,7 @@ Select a provider to view details.
           content={detailContent}
           colors={themeColors}
         />
+      </box>
       </box>
       
       <StatusBar
