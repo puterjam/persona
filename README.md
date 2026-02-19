@@ -13,12 +13,12 @@ AI Coding CLI Provider Manager
 ### Quick Install
 
 ```bash
-curl -sSfL https://get.persona.sh | bash
+curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | bash
 ```
 
 For custom installation directory:
 ```bash
-curl -sSfL https://get.persona.sh | bash -s -- -d /usr/local/bin
+curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | bash -s -- -d /usr/local/bin
 ```
 
 ### Manual Download
@@ -54,7 +54,7 @@ persona
 | e | Edit selected provider |
 | d | Delete selected provider |
 | p | Test ping selected provider |
-| r | Refresh provider list |
+| t | Change theme |
 | q | Quit |
 
 ### Command Line Mode

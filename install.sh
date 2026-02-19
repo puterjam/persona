@@ -8,7 +8,7 @@ FORCE=false
 
 usage() {
     cat <<EOF
-Usage: curl -sSfL https://get.persona.sh | [sudo] bash [-s -- [-f] [-d DIR] [version]]
+Usage: curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | [sudo] bash [-s -- [-f] [-d DIR] [version]]
 
 Options:
     -f, --force      Force reinstall even if already installed
@@ -16,9 +16,9 @@ Options:
     version          Specific version to install (default: latest)
 
 Examples:
-    curl -sSfL https://get.persona.sh | bash
-    curl -sSfL https://get.persona.sh | sudo bash
-    curl -sSfL https://get.persona.sh | bash -s -- -d /usr/local/bin
+    curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | bash
+    curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | sudo bash
+    curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | bash -s -- -d /usr/local/bin
 EOF
     exit 0
 }
@@ -74,7 +74,7 @@ get_version() {
 
 get_download_url() {
     local version="$1"
-    echo "https://github.com/$REPO/releases/download/v${version}/persona-${OS}-${ARCH}"
+    echo "https://github.com/$REPO/releases/download/v${version}/persona-${version}-bun-${OS}-${ARCH}.zip"
 }
 
 install() {
@@ -87,9 +87,10 @@ install() {
 
     mkdir -p "$INSTALL_DIR"
 
-    local binary_path="$tmp_dir/persona"
-    curl -fSL "$download_url" -o "$binary_path"
-    chmod +x "$binary_path"
+    local zip_path="$tmp_dir/persona.zip"
+    curl -fSL "$download_url" -o "$zip_path"
+    unzip -o "$zip_path" -d "$tmp_dir"
+    chmod +x "$tmp_dir/persona"
 
     if [[ "$INSTALL_DIR" == /usr/local/bin/* ]] && [[ -z "$SUDO_USER" ]]; then
         echo "Error: Installing to $INSTALL_DIR requires sudo"
@@ -104,7 +105,7 @@ install() {
         exit 0
     fi
 
-    cp "$binary_path" "$INSTALL_DIR/persona"
+    cp "$tmp_dir/persona" "$INSTALL_DIR/persona"
     rm -rf "$tmp_dir"
 
     echo "Installed persona to $INSTALL_DIR/persona"

@@ -13,12 +13,12 @@ AI 编程 CLI Provider 管理工具
 ### 快速安装
 
 ```bash
-curl -sSfL https://get.persona.sh | bash
+curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | bash
 ```
 
 自定义安装目录：
 ```bash
-curl -sSfL https://get.persona.sh | bash -s -- -d /usr/local/bin
+curl -sSfL https://raw.githubusercontent.com/puterjam/persona/refs/heads/dev/install.sh | bash -s -- -d /usr/local/bin
 ```
 
 ### 手动下载
@@ -54,7 +54,7 @@ persona
 | e | 编辑选中的 provider |
 | d | 删除选中的 provider |
 | p | 测试 ping 选中的 provider |
-| r | 刷新 provider 列表 |
+| t | 更换风格 |
 | q | 退出 |
 
 ### 命令行模式
