@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import * as fs from 'fs';
 import * as path from 'path';
-import { createConfigStore, ConfigStore } from './store';
-import { Provider } from '../types';
+import { createConfigStore, ConfigStore } from '../../src/config/store';
+import { Provider } from '../../src/types';
 
 const TEST_DIR = '/tmp/persona-test-' + Date.now();
 

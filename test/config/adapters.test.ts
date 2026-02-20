@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ClaudeAdapter } from './claude';
-import { CodexAdapter } from './codex';
-import { setConfigDir, resetAdapters } from './index';
-import { Provider } from '../../types';
+import { ClaudeAdapter } from '../../src/config/adapters/claude';
+import { CodexAdapter } from '../../src/config/adapters/codex';
+import { setConfigDir, resetAdapters } from '../../src/config/adapters';
+import { Provider } from '../../src/types';
 
 function getUniqueTestDir(): string {
   return '/tmp/persona-adapter-test-' + Date.now() + '-' + Math.random().toString(36).substring(7);

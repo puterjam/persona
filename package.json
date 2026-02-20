@@ -1,6 +1,6 @@
 {
   "name": "persona",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "CLI tool to switch Claude CLI configurations between different model providers",
   "type": "module",
   "main": "dist/persona",
@@ -11,6 +11,7 @@
     "build": "bun run scripts/update-version.ts && bun build src/index.ts --compile --outfile ./dist/persona --target node",
     "start": "bun run dist/index.js",
     "dev": "bun run src/index.ts",
+    "test": "bun test test/",
     "link": "bun run scripts/update-version.ts && bun build src/index.ts --compile --outfile ./dist/persona --target node && sudo npm link",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
