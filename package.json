@@ -51,3 +51,4 @@
   "optionalDependencies": {
     "@opentui/core-darwin-arm64": "^0.1.79"
   }
+}
