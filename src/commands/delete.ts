@@ -4,15 +4,20 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { configStore } from '../config/store';
 
-export async function deleteProviderInteractive(providerId?: string): Promise<void> {
+export async function deleteProviderInteractive(providerId?: string, target: string = 'claude'): Promise<void> {
   let targetId = providerId;
 
-  // If no ID provided, show list to select
+  // If no ID provided, show list to select (filtered by target)
   if (!targetId) {
-    const providers = configStore.getProviders();
+    const allProviders = configStore.getProviders();
+
+    // Filter by target
+    const providers = target === 'codex'
+      ? allProviders.filter(p => p.target === 'codex')
+      : allProviders.filter(p => !p.target || p.target === 'claude');
 
     if (providers.length === 0) {
-      console.log(chalk.yellow('No providers to delete.'));
+      console.log(chalk.yellow(`No ${target} providers to delete.`));
       return;
     }
 
@@ -20,7 +25,7 @@ export async function deleteProviderInteractive(providerId?: string): Promise<vo
       {
         type: 'list',
         name: 'selectedId',
-        message: 'Select a provider to delete:',
+        message: `Select a ${target} provider to delete:`,
         choices: providers.map(p => ({
           name: p.name,
           value: p.id

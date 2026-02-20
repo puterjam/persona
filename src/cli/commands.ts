@@ -15,11 +15,11 @@ export const commands: Record<string, CommandDefinition> = {
   },
   add: {
     description: 'Add a new provider (interactive or with flags)',
-    usage: 'persona add [--template <name>] [--name <name>] [--base-url <url>] [--api-key <key>] [--api-format <format>] [--default-model <model>] [--haiku-model <model>] [--opus-model <model>] [--sonnet-model <model>]'
+    usage: 'persona add [--template <name>] [--name <name>] [--base-url <url>] [--api-key <key>] [--default-model <model>] [--haiku-model <model>] [--opus-model <model>] [--sonnet-model <model>]'
   },
   edit: {
     description: 'Edit an existing provider',
-    usage: 'persona edit <provider-id> [--name <name>] [--base-url <url>] [--api-key <key>] [--api-format <format>]'
+    usage: 'persona edit <provider-id> [--name <name>] [--base-url <url>] [--api-key <key>]'
   },
   remove: {
     aliases: ['rm', 'del'],

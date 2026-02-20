@@ -2,6 +2,13 @@
 
 AI Coding CLI Provider Manager
 
+## Supported CLI Tools
+
+| CLI | Description |
+|-----|-------------|
+| Claude | Anthropic's Claude CLI |
+| Codex | OpenAI's Codex CLI |
+
 ## Interface
 
 ![Interface](docs/screenshot.png)
@@ -49,6 +56,7 @@ persona
 | Key | Action |
 |-----|--------|
 | ↑/↓ | Navigate provider list |
+| Tab | Switch between Claude/Codex mode |
 | Enter | Switch to selected provider |
 | a | Add new provider |
 | e | Edit selected provider |
@@ -62,19 +70,24 @@ persona
 #### List Providers
 
 ```bash
-persona ls
+persona ls                    # List Claude providers (default)
+persona ls --target claude    # List Claude providers
+persona ls --target codex     # List Codex providers
 ```
 
 #### Add Provider
 
 ```bash
-persona add
+persona add                   # Add Claude provider (default)
+persona add --target codex    # Add Codex provider
 ```
 
 #### Switch Provider
 
 ```bash
-persona use <provider-id>
+persona use <provider-id>                   # Switch Claude provider (default)
+persona use --target claude <provider-id>   # Switch Claude provider
+persona use --target codex <provider-id>    # Switch Codex provider
 ```
 
 #### Test Provider
@@ -92,7 +105,7 @@ persona rm <provider-id>
 #### Show Current Status
 
 ```bash
-persona status
+persona status        # Shows both Claude and Codex provider status
 ```
 
 #### Theme Management
@@ -114,6 +127,7 @@ persona env edit          # Edit environment variable overrides
 
 ```bash
 persona templates         # List available provider templates
+persona templates codex  # List Codex-specific templates
 ```
 
 #### Sync Templates and Themes
@@ -126,6 +140,35 @@ persona sync --force            # Force overwrite existing files
 ```
 
 > Note: After installation, run `persona sync` to download the latest templates and themes to `~/.persona/`
+
+## Supported CLI Targets
+
+Persona supports managing providers for multiple AI CLI tools:
+
+| Target | Description |
+|--------|-------------|
+| Claude | Anthropic's Claude CLI (default) |
+| Codex | OpenAI's Codex CLI |
+
+### Codex Configuration
+
+When adding a Codex provider, you'll be prompted for:
+
+- **Wire API**: Choose between `responses`, `completions`, or `chat`
+- **OpenAI Auth**: Whether the provider requires OpenAI authentication
+
+Example Codex providers:
+
+- Ollama (local)
+- OpenAI compatible APIs (DeepSeek, etc.)
+
+After switching to a Codex provider, run:
+
+```bash
+codex --profile persona
+```
+
+This uses the `persona` profile configured by Persona.
 
 ## Configuration Files
 

@@ -1,5 +1,5 @@
 import { useCallback } from "react"
-import type { Provider } from "../../types"
+import type { Provider, CliTarget } from "../../types"
 import { configStore } from "../../config/store"
 import { testProvider } from "../../utils/api/index"
 import { saveProvider } from "../../commands/add"
@@ -12,6 +12,7 @@ interface UseProviderActionsProps {
   showDefaultDetails: () => void
   showProviderDetails: (provider: Provider) => void
   updateStatus: (msg: string) => void
+  cliTarget: CliTarget
 }
 
 export function useProviderActions({
@@ -20,16 +21,18 @@ export function useProviderActions({
   activeProvider,
   showDefaultDetails,
   showProviderDetails,
-  updateStatus
+  updateStatus,
+  cliTarget
 }: UseProviderActionsProps) {
   const switchToProvider = useCallback((provider: Provider) => {
-    configStore.applyProviderToClaude(provider, true)
-    configStore.setActiveProvider(provider.id)
-  }, [])
+    const target = provider.target || cliTarget
+    configStore.applyProvider(provider, true)
+    configStore.setActiveProvider(provider.id, target)
+  }, [cliTarget])
 
   const switchToDefault = useCallback(() => {
-    configStore.clearProviderConfig()
-  }, [])
+    configStore.clearProviderConfig(cliTarget)
+  }, [cliTarget])
 
   const deleteProvider = useCallback((provider: Provider) => {
     configStore.deleteProvider(provider.id)

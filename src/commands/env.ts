@@ -1,16 +1,20 @@
 import chalk from 'chalk';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
+import * as path from 'path';
+import * as toml from '@iarna/toml';
 import { configStore } from '../config/store';
 import { GeneralConfig } from '../types';
 import { maskApiKey } from '../utils/crypto/mask';
 
-const DEFAULT_ENV_CONFIG = `{
-  "CLAUDE_API_KEY": "",
-  "ANTHROPIC_PROJECT_ID": "",
-  "ANTHROPIC_ORGANIZATION_ID": "",
-  "ANTHROPIC_MAX_TOKENS": "4096"
+const DEFAULT_CLAUDE_CONFIG = `{
+  "env": {}
 }`;
+
+const DEFAULT_CODEX_CONFIG = `
+# Common Codex config
+# Add your common TOML configuration here
+`;
 
 function detectEditor(): string {
   const hasDisplay = process.env.DISPLAY || process.env.WAYLAND_DISPLAY;
@@ -43,6 +47,10 @@ function detectEditor(): string {
 }
 
 function openInEditor(filePath: string, content: string): void {
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
   if (!fs.existsSync(filePath)) {
     fs.writeFileSync(filePath, content);
   }
@@ -58,42 +66,31 @@ function openInEditor(filePath: string, content: string): void {
   }
 }
 
-function validateConfig(content: string): { valid: boolean; config?: GeneralConfig; error?: string } {
-  try {
-    const config = JSON.parse(content);
-    if (!config || typeof config !== 'object') {
-      return { valid: false, error: 'Config must be a valid JSON object' };
-    }
-    return { valid: true, config };
-  } catch (error) {
-    return { valid: false, error: `Invalid JSON: ${error}` };
-  }
-}
-
 export function showEnvConfig(): void {
-  const config = configStore.getGeneralConfig();
+  // Show Claude config
+  const claudeConfig = configStore.getGeneralConfig();
 
-  console.log(chalk.bold('\nEnvironment Variables Override:\n'));
+  console.log(chalk.bold('\n=== Claude Environment Variables ===\n'));
 
-  if (!config || Object.keys(config).length === 0) {
-    console.log(chalk.yellow('No environment variables configured.'));
-    console.log('Run "persona env edit" to add overrides.\n');
-    return;
-  }
+  let hasClaudeConfig = false;
 
-  for (const [key, value] of Object.entries(config)) {
-    if (value && typeof value === 'object') {
-      console.log(chalk.bold(`${key}:`));
-      for (const [subKey, subValue] of Object.entries(value as Record<string, string>)) {
-        if (subValue && subValue.length > 0) {
+  // Display all top-level keys
+  for (const [key, value] of Object.entries(claudeConfig)) {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      // Nested object - display its contents
+      console.log(chalk.bold(`  ${key}:`));
+      for (const [subKey, subValue] of Object.entries(value as Record<string, any>)) {
+        if (subValue && typeof subValue === 'string' && subValue.length > 0) {
+          hasClaudeConfig = true;
           if (subKey.toLowerCase().includes('key') || subKey.toLowerCase().includes('token') || subKey.toLowerCase().includes('secret')) {
-            console.log(`  ${subKey}: ${maskApiKey(subValue)}`);
+            console.log(`    ${subKey}: ${maskApiKey(subValue)}`);
           } else {
-            console.log(`  ${subKey}: ${subValue}`);
+            console.log(`    ${subKey}: ${subValue}`);
           }
         }
       }
     } else if (value && typeof value === 'string' && value.length > 0) {
+      hasClaudeConfig = true;
       if (key.toLowerCase().includes('key') || key.toLowerCase().includes('token') || key.toLowerCase().includes('secret')) {
         console.log(`  ${key}: ${maskApiKey(value)}`);
       } else {
@@ -101,38 +98,75 @@ export function showEnvConfig(): void {
       }
     }
   }
-  console.log();
-}
 
-export function editEnvConfig(): void {
-  const configPath = configStore.getGeneralConfigPath();
-
-  const currentConfig = configStore.getGeneralConfig();
-  let initialContent = DEFAULT_ENV_CONFIG;
-
-  if (currentConfig && Object.keys(currentConfig).length > 0) {
-    initialContent = JSON.stringify(currentConfig, null, 2);
+  if (!hasClaudeConfig) {
+    console.log(chalk.gray('  (none)'));
   }
 
-  console.log(chalk.bold('\nEnvironment Variables Override Editor\n'));
-  console.log('These variables will be merged with provider config on activation.');
-  console.log('Provider config has higher priority and can override these values.\n');
+  // Show Codex config
+  console.log(chalk.bold('\n=== Codex Settings ===\n'));
 
-  openInEditor(configPath, initialContent);
+  const codexConfig = configStore.getCodexGeneralConfig();
+  if (codexConfig && Object.keys(codexConfig).length > 0) {
+    for (const [key, value] of Object.entries(codexConfig)) {
+      console.log(`  ${key}: ${value}`);
+    }
+  } else {
+    console.log(chalk.gray('  (none)'));
+  }
 
-  try {
-    const content = fs.readFileSync(configPath, 'utf-8');
-    const result = validateConfig(content);
+  console.log();
+  console.log(chalk.cyan('Run "persona env edit claude|codex" to modify these settings.\n'));
+}
 
-    if (!result.valid) {
-      console.log(chalk.red(`\nInvalid configuration: ${result.error}`));
-      console.log(chalk.yellow('Keeping previous configuration.'));
-      return;
+export function editEnvConfig(args: string[]): void {
+  const target = args[0] || 'claude';
+
+  if (target === 'codex') {
+    // Edit Codex config (TOML)
+    const configPath = configStore.getCodexGeneralConfigPath();
+
+    // If file exists, use existing content to preserve comments
+    let initialContent = DEFAULT_CODEX_CONFIG;
+    if (fs.existsSync(configPath)) {
+      initialContent = fs.readFileSync(configPath, 'utf-8');
     }
 
-    configStore.saveGeneralConfig(result.config!);
-    console.log(chalk.green('\nConfiguration saved successfully.\n'));
-  } catch (error) {
-    console.log(chalk.red('Failed to read configuration:', error));
+    console.log(chalk.bold('\nCodex Settings Editor (TOML)\n'));
+    openInEditor(configPath, initialContent);
+
+    try {
+      if (fs.existsSync(configPath)) {
+        // Just validate the TOML - don't save back to preserve comments
+        const content = fs.readFileSync(configPath, 'utf-8');
+        const config = toml.parse(content);
+        console.log(chalk.green('\nConfiguration saved successfully.\n'));
+      }
+    } catch (error) {
+      console.log(chalk.red('Failed to read configuration:', error));
+    }
+  } else {
+    // Edit Claude config (JSON)
+    const configPath = configStore.getGeneralConfigPath();
+
+    // If file exists, use existing content
+    let initialContent = DEFAULT_CLAUDE_CONFIG;
+    if (fs.existsSync(configPath)) {
+      initialContent = fs.readFileSync(configPath, 'utf-8');
+    }
+
+    console.log(chalk.bold('\nClaude Environment Variables Editor (JSON)\n'));
+    console.log('These variables will be merged with provider config on activation.');
+    console.log('Provider config has higher priority and can override these values.\n');
+
+    openInEditor(configPath, initialContent);
+
+    try {
+      const content = fs.readFileSync(configPath, 'utf-8');
+      JSON.parse(content); // Just validate JSON
+      console.log(chalk.green('\nConfiguration saved successfully.\n'));
+    } catch (error) {
+      console.log(chalk.red('Failed to read configuration:', error));
+    }
   }
 }

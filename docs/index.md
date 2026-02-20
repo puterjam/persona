@@ -46,6 +46,14 @@ Switch between 20+ AI model providers including DeepSeek, Zhipu GLM, Kimi, MiniM
 
 <div class="feature-card">
 
+**🎯 Claude & Codex Support**
+
+Manage providers for both Anthropic Claude CLI and OpenAI Codex CLI with a single tool.
+
+</div>
+
+<div class="feature-card">
+
 **🎨 Theme System**
 
 Multiple color themes including Persona (default), Gruvbox, Dracula, and Nord. Customize your experience.
@@ -82,14 +90,24 @@ curl -sSfL https://puterjam.github.io/persona/install.sh | bash
 # Launch interactive mode
 persona
 
-# List providers
+# List providers (Claude - default)
 persona ls
 
-# Add a provider
+# List Codex providers
+persona ls --target codex
+
+# Add a provider (Claude - default)
 persona add
+
+# Add a Codex provider
+persona add --target codex
 
 # Switch provider
 persona use <provider-id>
+persona use --target codex <provider-id>
+
+# For Codex, use the persona profile
+codex --profile persona
 
 # Test connection
 persona ping

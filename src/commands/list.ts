@@ -2,17 +2,24 @@
 
 import chalk from 'chalk';
 import { configStore } from '../config/store';
+import type { CliTarget } from '../types';
 
-export function listProviders(): void {
-  const providers = configStore.getProviders();
-  const activeProvider = configStore.getActiveProvider();
+export function listProviders(target: string = 'claude'): void {
+  const allProviders = configStore.getProviders();
+
+  // Filter by target
+  const providers = target === 'codex'
+    ? allProviders.filter(p => p.target === 'codex')
+    : allProviders.filter(p => !p.target || p.target === 'claude');
+
+  const activeProvider = configStore.getActiveProvider(target as CliTarget);
 
   if (providers.length === 0) {
-    console.log(chalk.yellow('No providers configured. Use "persona add" to add a provider.'));
+    console.log(chalk.yellow(`No ${target} providers configured. Use "persona add --target ${target}" to add a provider.`));
     return;
   }
 
-  console.log(chalk.bold('\nConfigured Providers:\n'));
+  console.log(chalk.bold(`\n=== ${target.toUpperCase()} Providers ===\n`));
 
   providers.forEach((provider, index) => {
     const isActive = activeProvider?.id === provider.id;
@@ -23,6 +30,7 @@ export function listProviders(): void {
     console.log(`      Website: ${provider.website}`);
     console.log(`      API URL: ${provider.baseUrl}`);
     console.log(`      Format: ${provider.apiFormat}`);
+    if (provider.target) console.log(`      Target: ${provider.target}`);
     console.log(`      Models:`);
     if (provider.models.default) console.log(`        Default: ${provider.models.default}`);
     if (provider.models.haiku) console.log(`        Haiku: ${provider.models.haiku}`);
@@ -31,9 +39,9 @@ export function listProviders(): void {
     console.log();
   });
 
-  if (activeProvider) {
+  if (activeProvider && activeProvider.target === target) {
     console.log(chalk.green(`Active provider: ${activeProvider.name}`));
   } else {
-    console.log(chalk.yellow('No active provider selected. Use "persona switch <id>" to select one.'));
+    console.log(chalk.yellow(`No active ${target} provider selected. Use "persona use --target ${target} <id>" to select one.`));
   }
 }

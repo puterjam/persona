@@ -56,7 +56,7 @@ export function StatusBar({ message, colors, version }: StatusBarProps) {
       </text>
       <text
         position="absolute"
-        right={7}
+        right={3}
         bottom={0}
         paddingBottom={1}
         fg={colors.textMuted}

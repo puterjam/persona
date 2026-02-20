@@ -38,7 +38,6 @@ persona add --template openai --name "My OpenAI" --api-key sk-xxx
 - `--template<name>` - Use  a provider template
 - `--name <name>` - Provider name
 - `--base-url <url>` - API base URL
-- `--api-key <key>` - API key
 - `--default-model <model>` - Default model
 - `--haiku-model <model>` - Haiku model
 - `--opus-model <model>` - Opus model

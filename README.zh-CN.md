@@ -2,6 +2,13 @@
 
 AI 编程 CLI Provider 管理工具
 
+## 支持的 CLI 工具
+
+| CLI | 描述 |
+|-----|------|
+| Claude | Anthropic's Claude CLI |
+| Codex | OpenAI's Codex CLI |
+
 ## 界面
 
 ![界面](docs/screenshot.png)
@@ -49,6 +56,7 @@ persona
 | 按键 | 功能 |
 |------|------|
 | ↑/↓ | 浏览 provider 列表 |
+| Tab | 切换 Claude/Codex 模式 |
 | Enter | 切换到选中的 provider |
 | a | 新增 provider |
 | e | 编辑选中的 provider |
@@ -62,19 +70,24 @@ persona
 #### 查看 Providers
 
 ```bash
-persona ls
+persona ls                    # 查看 Claude providers (默认)
+persona ls --target claude    # 查看 Claude providers
+persona ls --target codex     # 查看 Codex providers
 ```
 
 #### 新增 Provider
 
 ```bash
-persona add
+persona add                   # 新增 Claude provider (默认)
+persona add --target codex    # 新增 Codex provider
 ```
 
 #### 切换 Provider
 
 ```bash
-persona use <provider-id>
+persona use <provider-id>                   # 切换 Claude provider (默认)
+persona use --target claude <provider-id>   # 切换 Claude provider
+persona use --target codex <provider-id>    # 切换 Codex provider
 ```
 
 #### 测试 Provider
@@ -92,7 +105,7 @@ persona rm <provider-id>
 #### 查看当前状态
 
 ```bash
-persona status
+persona status        # 显示 Claude 和 Codex 的 provider 状态
 ```
 
 #### 主题管理
@@ -114,6 +127,7 @@ persona env edit          # 编辑环境变量覆盖配置
 
 ```bash
 persona templates         # 列出可用的 provider 模板
+persona templates codex  # 列出 Codex 模板
 ```
 
 #### 同步模板和主题
@@ -126,6 +140,35 @@ persona sync --force           # 强制覆盖现有文件
 ```
 
 > 注意：安装后请运行 `persona sync` 将最新的模板和主题下载到 `~/.persona/`
+
+## 支持的 CLI 目标
+
+Persona 支持管理多种 AI CLI 工具的 providers：
+
+| 目标 | 描述 |
+|------|------|
+| Claude | Anthropic's Claude CLI (默认) |
+| Codex | OpenAI's Codex CLI |
+
+### Codex 配置
+
+新增 Codex provider 时，需要配置：
+
+- **Wire API**: 选择 `responses`、`completions` 或 `chat`
+- **OpenAI 认证**: 该 provider 是否需要 OpenAI 认证
+
+示例 Codex providers:
+
+- Ollama (本地)
+- OpenAI 兼容 API (DeepSeek 等)
+
+切换到 Codex provider 后，运行：
+
+```bash
+codex --profile persona
+```
+
+这将使用 Persona 配置的 `persona` 配置集。
 
 ## 配置文件
 

@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { useKeyboard } from "@opentui/react"
 import type { CliRenderer, SelectOption } from "@opentui/core"
-import type { Provider } from "../../types"
+import type { Provider, CliTarget } from "../../types"
 import { configStore } from "../../config/store"
 import { getThemeColors, loadTheme, getThemeNames, setThemeColors } from "../../utils/theme"
 import { Header } from "./layout/Header"
@@ -11,7 +11,7 @@ import { ProviderList } from "./ProviderList"
 import { ConfirmDialog } from "./dialogs/ConfirmDialog"
 import { InputDialog } from "./dialogs/InputDialog"
 import { ListDialog } from "./dialogs/ListDialog"
-import { getTemplateNames, getTemplateByFullName } from "../../config/templates"
+import { getTemplateNames, getTemplateByFullName, getCategoryNames } from "../../config/templates"
 import { VERSION } from "../../version"
 import { useProviders } from "../hooks/useProviders"
 import { useDialogs } from "../hooks/useDialogs"
@@ -22,7 +22,7 @@ interface TuiAppProps {
 }
 
 export function TuiApp({ renderer }: TuiAppProps) {
-  const defaultStatus = "{↑↓} Navigate {enter} use provider {a/e/d} add/edit/del {p} Ping {t} theme {q} quit"
+  const defaultStatus = "{↑↓} Navigate {enter} use provider {tab} switch CLI {a/e/d} add/edit/del {p} Ping {t} theme {q} quit"
 
   const themeColors = getThemeColors()
   const statusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -32,16 +32,27 @@ export function TuiApp({ renderer }: TuiAppProps) {
   const [detailContent, setDetailContent] = useState<DetailContent | null>(null)
   const [listContainerKey, setListContainerKey] = useState(0)
   const [selectFocused, setSelectFocused] = useState(true)
+  const [cliTarget, setCliTarget] = useState<CliTarget>("claude")
 
   const {
-    providers,
+    providers: allProviders,
     activeProvider,
     loadProviders,
     deleteProviderById,
     updateProvider,
     addProvider,
     pingProvider
-  } = useProviders()
+  } = useProviders(cliTarget)
+
+  // Filter providers by target
+  // Filter by target: claude shows providers with target=claude or no target (backwards compatible)
+  // codex shows only providers with target=codex
+  const providers = useMemo(() =>
+    cliTarget === "codex"
+      ? allProviders.filter(p => p.target === "codex")
+      : allProviders.filter(p => !p.target || p.target === "claude"),
+    [allProviders, cliTarget]
+  )
 
   const {
     dialogState,
@@ -78,6 +89,7 @@ export function TuiApp({ renderer }: TuiAppProps) {
   }, [activeProvider])
 
   useEffect(() => {
+    if (detailContent?.type === "ping" || detailContent?.type === "message") return
     if (providers.length === 0 || selectedIndex === 0) {
       showDefaultDetails()
     } else if (providers[selectedIndex - 1]) {
@@ -144,6 +156,8 @@ export function TuiApp({ renderer }: TuiAppProps) {
   }
 
   const handleEdit = async (provider: Provider) => {
+    const isCodex = provider.target === "codex"
+
     const name = await showInputDialog("Edit Name", "Name", provider.name, true)
     if (name === null) return
 
@@ -156,14 +170,21 @@ export function TuiApp({ renderer }: TuiAppProps) {
     const defaultModel = await showInputDialog("Edit Default Model", "Default Model", provider.models.default || "", true)
     if (defaultModel === null) return
 
-    const haikuModel = await showInputDialog("Edit Haiku Model", "Haiku model name (optional):", provider.models.haiku || "")
-    if (haikuModel === null) return
+    let haikuModel, opusModel, sonnetModel, wireApi, requiresOpenAiAuth
 
-    const opusModel = await showInputDialog("Edit Opus Model", "Opus model name (optional):", provider.models.opus || "")
-    if (opusModel === null) return
-
-    const sonnetModel = await showInputDialog("Edit Sonnet Model", "Sonnet model name (optional):", provider.models.sonnet || "")
-    if (sonnetModel === null) return
+    if (isCodex) {
+      wireApi = await showInputDialog("Edit Wire API", "Wire API (responses/completions/chat):", provider.wireApi || "responses", true)
+      if (wireApi === null) return
+      requiresOpenAiAuth = await showConfirmDialog("Requires OpenAI Auth", "Does this provider require OpenAI authentication?")
+      if (requiresOpenAiAuth === null) return
+    } else {
+      haikuModel = await showInputDialog("Edit Haiku Model", "Haiku model name (optional):", provider.models.haiku || "")
+      if (haikuModel === null) return
+      opusModel = await showInputDialog("Edit Opus Model", "Opus model name (optional):", provider.models.opus || "")
+      if (opusModel === null) return
+      sonnetModel = await showInputDialog("Edit Sonnet Model", "Sonnet model name (optional):", provider.models.sonnet || "")
+      if (sonnetModel === null) return
+    }
 
     const updates: Partial<Provider> = {
       name: name || provider.name,
@@ -174,39 +195,62 @@ export function TuiApp({ renderer }: TuiAppProps) {
         haiku: haikuModel || undefined,
         opus: opusModel || undefined,
         sonnet: sonnetModel || undefined,
-      }
+      },
+      wireApi: wireApi || undefined,
+      requiresOpenAiAuth,
     }
 
     if (apiKey) updates.apiKey = apiKey
 
     updateProvider(provider.id, updates)
+    setListContainerKey(k => k + 1)
     setDetailContent({ type: "message", message: `✓ Provider "${name}" updated successfully!` })
     updateStatus("Provider updated")
   }
 
   const handleAddProvider = async () => {
-    let defaults: { name?: string; website?: string; baseUrl?: string; apiFormat?: 'anthropic-messages' | 'openai-completions'; models?: { default?: string; haiku?: string; opus?: string; sonnet?: string } } = {}
+    const isCodex = cliTarget === "codex"
+
+    let defaults: { name?: string; website?: string; baseUrl?: string; apiFormat?: 'anthropic-messages' | 'openai-completions'; models?: { default?: string; haiku?: string; opus?: string; sonnet?: string }; target?: CliTarget; wireApi?: string; requiresOpenAiAuth?: boolean; envKey?: string } = {}
 
     const useTemplate = await showConfirmDialog("Use Provider Template", "Would you like to use a provider template?")
     if (useTemplate === null) return
 
     if (useTemplate) {
+      // Filter templates by current target
       const templateNames = getTemplateNames()
-      const choices = templateNames.map((name: string) => {
+      const filteredTemplates = templateNames.filter((name: string) => {
         const t = getTemplateByFullName(name)
-        return { name: `${t?.name} - ${t?.description}`, value: name }
+        if (isCodex) {
+          return t && (t as any).target === "codex"
+        } else {
+          return t && !(t as any).target || (t as any).target === "claude"
+        }
       })
-      const selectedTemplate = await showListDialog("Select a Template", choices)
-      if (!selectedTemplate) return
 
-      const template = getTemplateByFullName(selectedTemplate)
-      if (template) {
-        defaults = {
-          name: template.name,
-          website: template.website,
-          baseUrl: template.baseUrl,
-          apiFormat: template.apiFormat,
-          models: { ...template.defaultModels },
+      if (filteredTemplates.length === 0) {
+        updateStatus("No templates available for this target")
+      } else {
+        const choices = filteredTemplates.map((name: string) => {
+          const t = getTemplateByFullName(name)
+          return { name: `${t?.name} - ${t?.description}`, value: name }
+        })
+        const selectedTemplate = await showListDialog("Select a Template", choices)
+        if (selectedTemplate) {
+          const template = getTemplateByFullName(selectedTemplate)
+          if (template) {
+            defaults = {
+              name: template.name,
+              website: template.website,
+              baseUrl: template.baseUrl,
+              apiFormat: template.apiFormat,
+              models: { ...template.defaultModels },
+              target: (template as any).target,
+              wireApi: (template as any).wireApi,
+              requiresOpenAiAuth: (template as any).requiresOpenAiAuth,
+              envKey: (template as any).envKey,
+            }
+          }
         }
       }
     }
@@ -226,30 +270,42 @@ export function TuiApp({ renderer }: TuiAppProps) {
     const defaultModel = await showInputDialog("Default Model", "Default model name:", defaults.models?.default || "", true)
     if (defaultModel === null) return
 
-    const haikuModel = await showInputDialog("Haiku Model", "Haiku model name (optional):", defaults.models?.haiku || "")
-    if (haikuModel === null) return
+    let haikuModel, opusModel, sonnetModel, wireApi, requiresOpenAiAuth
 
-    const opusModel = await showInputDialog("Opus Model", "Opus model name (optional):", defaults.models?.opus || "")
-    if (opusModel === null) return
-
-    const sonnetModel = await showInputDialog("Sonnet Model", "Sonnet model name (optional):", defaults.models?.sonnet || "")
-    if (sonnetModel === null) return
+    if (isCodex) {
+      wireApi = await showInputDialog("Wire API", "Wire API (responses/completions/chat):", defaults.wireApi || "responses", true)
+      if (wireApi === null) return
+      requiresOpenAiAuth = await showConfirmDialog("Requires OpenAI Auth", "Does this provider require OpenAI authentication?")
+      if (requiresOpenAiAuth === null) return
+    } else {
+      haikuModel = await showInputDialog("Haiku Model", "Haiku model name (optional):", defaults.models?.haiku || "")
+      if (haikuModel === null) return
+      opusModel = await showInputDialog("Opus Model", "Opus model name (optional):", defaults.models?.opus || "")
+      if (opusModel === null) return
+      sonnetModel = await showInputDialog("Sonnet Model", "Sonnet model name (optional):", defaults.models?.sonnet || "")
+      if (sonnetModel === null) return
+    }
 
     const provider = addProvider({
       name, website, baseUrl, apiKey,
-      apiFormat: "anthropic-messages",
+      apiFormat: isCodex ? "openai-completions" : "anthropic-messages",
+      target: cliTarget,
       models: {
         default: defaultModel || undefined,
         haiku: haikuModel || undefined,
         opus: opusModel || undefined,
         sonnet: sonnetModel || undefined,
       },
+      wireApi: wireApi || undefined,
+      requiresOpenAiAuth: requiresOpenAiAuth,
+      envKey: defaults.envKey || undefined,
     })
 
     setDetailContent({
       type: "message",
-      message: `✓ Provider "${provider.name}" added successfully!\nProvider ID: ${provider.id}\n\nSelect a provider to view details.`
+      message: `✓ Provider "${provider.name}" added successfully!\nProvider ID: ${provider.id}\nTarget: ${provider.target || 'claude'}\n\nSelect a provider to view details.`
     })
+    setListContainerKey(k => k + 1)
     updateStatus(`Provider "${provider.name}" added`)
   }
 
@@ -272,14 +328,14 @@ export function TuiApp({ renderer }: TuiAppProps) {
 
   const handleSelectProvider = (index: number) => {
     if (index === 0) {
-      configStore.clearProviderConfig()
+      configStore.clearProviderConfig(cliTarget)
       loadProviders()
       showDefaultDetails()
       updateStatus("Switched to Default (Official)")
     } else if (providers[index - 1]) {
       const provider = providers[index - 1]
-      configStore.applyProviderToClaude(provider, true)
-      configStore.setActiveProvider(provider.id)
+      configStore.applyProvider(provider, true)
+      configStore.setActiveProvider(provider.id, cliTarget)
       loadProviders()
       showProviderDetails(provider)
       updateStatus(`Switched to {${provider.name}}`)
@@ -290,6 +346,13 @@ export function TuiApp({ renderer }: TuiAppProps) {
     if (dialogState.type !== null) return
 
     switch (key.name) {
+      case "tab":
+        // Toggle between Claude and Codex targets
+        setCliTarget(prev => prev === "claude" ? "codex" : "claude")
+        setSelectedIndex(0)
+        setListContainerKey(k => k + 1) // Force refresh list
+        updateStatus(`Switched CLI target`)
+        break
       case "a": handleAddProvider(); break
       case "e": providers[selectedIndex - 1] && handleEdit(providers[selectedIndex - 1]); break
       case "p": providers[selectedIndex - 1] && handlePing(providers[selectedIndex - 1]); break
@@ -300,8 +363,9 @@ export function TuiApp({ renderer }: TuiAppProps) {
     }
   }, { release: false })
 
+  const defaultLabel = cliTarget === "codex" ? "Codex Default" : "Anthropic Official"
   const listOptions: SelectOption[] = [
-    { name: !activeProvider ? "(Default) ✓" : "(Default)", description: "Anthropic official", value: "default" },
+    { name: !activeProvider ? `(Default) ✓` : "(Default)", description: defaultLabel, value: "default" },
     ...providers.map((p: Provider) => ({
       name: activeProvider?.id === p.id ? `${p.name} ✓` : p.name,
       description: p.models.default || "",
@@ -313,10 +377,10 @@ export function TuiApp({ renderer }: TuiAppProps) {
 
   return (
     <>
-      <Header colors={themeColors} version={VERSION} />
+      <Header colors={themeColors} version={VERSION} cliTarget={cliTarget} />
 
       <box position="absolute" top={0} left={0} width="100%" height="100%" justifyContent="center" alignItems="center" paddingTop={8} paddingBottom={5}>
-        <box flexDirection="row" width="70%" height="100%">
+        <box flexDirection="row" width="80%" height="100%">
           <ProviderList
             key={listContainerKey}
             options={listOptions}

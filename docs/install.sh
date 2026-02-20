@@ -104,7 +104,7 @@ sync_assets() {
     log "Synced themes to $themes_dir"
 
     mkdir -p "$templates_dir"
-    local categories=$(curl -fsSL "https://api.github.com/repos/$REPO/contents/templates" 2>> "$LOG_FILE" | grep '"name"' | grep -o '/templates/[^"]*' | cut -d'/' -f3 | sort -u || echo "claude")
+    local categories=$(curl -fsSL "https://api.github.com/repos/$REPO/contents/templates" 2>> "$LOG_FILE" | grep '"name"' | grep -o '"name": *"[^"]*"' | cut -d'"' -f4 | sort -u || echo "claude codex")
     
     for cat in $categories; do
         local cat_dir="$templates_dir/$cat"
@@ -115,7 +115,7 @@ sync_assets() {
         done
     done
     
-    if [[ -d "$templates_dir/claude" ]]; then
+    if [[ -d "$templates_dir/claude" ]] || [[ -d "$templates_dir/codex" ]]; then
         log "Synced templates to $templates_dir"
     fi
 }

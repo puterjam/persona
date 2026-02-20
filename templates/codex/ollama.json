@@ -1,0 +1,14 @@
+{
+  "name": "Ollama",
+  "website": "https://ollama.com",
+  "baseUrl": "http://localhost:11434/v1",
+  "apiKey": "",
+  "apiFormat": "openai-completions",
+  "defaultModels": {
+    "default": "llama3.2"
+  },
+  "target": "codex",
+  "wireApi": "responses",
+  "requiresOpenAiAuth": false,
+  "description": "Ollama local API for Codex"
+}

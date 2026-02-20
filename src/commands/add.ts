@@ -20,6 +20,10 @@ export interface ProviderFormData {
     opus?: string;
     sonnet?: string;
   };
+  target?: 'claude' | 'codex';
+  wireApi?: string;
+  requiresOpenAiAuth?: boolean;
+  envKey?: string;
 }
 
 export interface ProviderFormDefaults {
@@ -33,10 +37,14 @@ export interface ProviderFormDefaults {
     opus?: string;
     sonnet?: string;
   };
+  target?: 'claude' | 'codex';
+  wireApi?: string;
+  requiresOpenAiAuth?: boolean;
+  envKey?: string;
 }
 
 // Step 1: Prompt for template selection (returns defaults if template selected)
-export async function promptForTemplate(): Promise<ProviderFormDefaults> {
+export async function promptForTemplate(target: string = 'claude'): Promise<ProviderFormDefaults> {
   const { useTemplate } = await inquirer.prompt([
     {
       type: 'confirm',
@@ -50,13 +58,28 @@ export async function promptForTemplate(): Promise<ProviderFormDefaults> {
     return {};
   }
 
+  // Filter templates by target
   const templateNames = getTemplateNames();
+  const filteredTemplates = templateNames.filter(name => {
+    const t = getTemplateByFullName(name);
+    if (target === 'codex') {
+      return t && (t as any).target === 'codex';
+    } else {
+      return t && !(t as any).target || (t as any).target === 'claude';
+    }
+  });
+
+  if (filteredTemplates.length === 0) {
+    console.log(chalk.yellow(`No templates available for ${target}.`));
+    return {};
+  }
+
   const { selectedTemplate } = await inquirer.prompt([
     {
       type: 'list',
       name: 'selectedTemplate',
       message: 'Select a provider template:',
-      choices: templateNames.map(name => ({
+      choices: filteredTemplates.map(name => ({
         name: `${getTemplateByFullName(name)?.name} - ${getTemplateByFullName(name)?.description}`,
         value: name
       }))
@@ -70,7 +93,11 @@ export async function promptForTemplate(): Promise<ProviderFormDefaults> {
       website: template.website,
       baseUrl: template.baseUrl,
       apiFormat: template.apiFormat,
-      models: { ...template.defaultModels }
+      models: { ...template.defaultModels },
+      target: (template as any).target,
+      wireApi: (template as any).wireApi,
+      requiresOpenAiAuth: (template as any).requiresOpenAiAuth,
+      envKey: (template as any).envKey
     };
   }
 
@@ -78,14 +105,16 @@ export async function promptForTemplate(): Promise<ProviderFormDefaults> {
 }
 
 // Step 2: Prompt for provider details
-export async function promptForProviderDetails(defaults: ProviderFormDefaults = {}): Promise<ProviderFormData> {
-  const answers = await inquirer.prompt([
+export async function promptForProviderDetails(defaults: ProviderFormDefaults = {}, target: string = 'claude'): Promise<ProviderFormData> {
+  const isCodex = target === 'codex';
+
+  const questions: any[] = [
     {
       type: 'input',
       name: 'name',
       message: 'Provider name:',
       default: defaults.name,
-      validate: (input) => input.length > 0 ? true : 'Name is required'
+      validate: (input: string) => input.length > 0 ? true : 'Name is required'
     },
     {
       type: 'input',
@@ -98,72 +127,91 @@ export async function promptForProviderDetails(defaults: ProviderFormDefaults = 
       name: 'baseUrl',
       message: 'API Base URL:',
       default: defaults.baseUrl,
-      validate: (input) => input.length > 0 ? true : 'Base URL is required'
+      validate: (input: string) => input.length > 0 ? true : 'Base URL is required'
     },
     {
       type: 'input',
       name: 'apiKey',
       message: 'API Key:',
-      validate: (input) => input.length > 0 ? true : 'API Key is required'
-    },
-    {
-      type: 'list',
-      name: 'apiFormat',
-      message: 'API Format:',
-      default: defaults.apiFormat || 'anthropic-messages',
-      choices: API_FORMAT_OPTIONS
+      validate: (input: string) => input.length > 0 ? true : 'API Key is required'
     },
     {
       type: 'input',
       name: 'defaultModel',
       message: 'Default model name:',
       default: defaults.models?.default
-    },
-    {
+    }
+  ];
+
+  if (isCodex) {
+    questions.push({
+      type: 'input',
+      name: 'wireApi',
+      message: 'Wire API (responses/completions/chat):',
+      default: defaults.wireApi || 'responses'
+    });
+    questions.push({
+      type: 'confirm',
+      name: 'requiresOpenAiAuth',
+      message: 'Requires OpenAI authentication?',
+      default: defaults.requiresOpenAiAuth !== false
+    });
+  } else {
+    questions.push({
       type: 'input',
       name: 'haikuModel',
       message: 'Haiku model name (optional):',
       default: defaults.models?.haiku
-    },
-    {
+    });
+    questions.push({
       type: 'input',
       name: 'opusModel',
       message: 'Opus model name (optional):',
       default: defaults.models?.opus
-    },
-    {
+    });
+    questions.push({
       type: 'input',
       name: 'sonnetModel',
       message: 'Sonnet model name (optional):',
       default: defaults.models?.sonnet
-    }
-  ]);
+    });
+  }
+
+  const answers = await inquirer.prompt(questions);
 
   return {
     name: answers.name,
     website: answers.website,
     baseUrl: answers.baseUrl,
     apiKey: answers.apiKey,
-    apiFormat: answers.apiFormat,
+    apiFormat: isCodex ? 'openai-completions' : 'anthropic-messages',
     models: {
       default: answers.defaultModel || undefined,
       haiku: answers.haikuModel || undefined,
       opus: answers.opusModel || undefined,
       sonnet: answers.sonnetModel || undefined
-    }
+    },
+    target: target as any,
+    wireApi: answers.wireApi || undefined,
+    requiresOpenAiAuth: answers.requiresOpenAiAuth,
+    envKey: defaults.envKey || undefined
   };
 }
 
 // Step 3: Save provider
 export function saveProvider(data: ProviderFormData): Provider {
   const newProvider: Provider = {
-    id: generateProviderId(data.name),
+    id: generateProviderId(data.name, data.target),
     name: data.name,
     website: data.website,
     apiKey: data.apiKey,
     baseUrl: data.baseUrl,
     apiFormat: data.apiFormat,
-    models: data.models
+    models: data.models,
+    target: data.target,
+    wireApi: data.wireApi,
+    requiresOpenAiAuth: data.requiresOpenAiAuth,
+    envKey: data.envKey
   };
 
   configStore.addProvider(newProvider);
@@ -171,13 +219,14 @@ export function saveProvider(data: ProviderFormData): Provider {
 }
 
 // Full interactive flow (for CLI)
-export async function addProviderInteractive(): Promise<void> {
-  const defaults = await promptForTemplate();
-  const data = await promptForProviderDetails(defaults);
+export async function addProviderInteractive(target: string = 'claude'): Promise<void> {
+  const defaults = await promptForTemplate(target);
+  const data = await promptForProviderDetails(defaults, target);
   const provider = saveProvider(data);
 
   console.log(chalk.green(`\nProvider "${provider.name}" added successfully!`));
   console.log(`Provider ID: ${provider.id}`);
+  console.log(`Target: ${provider.target || 'claude'}`);
 }
 
 export function addProviderFromArgs(args: {
@@ -185,14 +234,15 @@ export function addProviderFromArgs(args: {
   website?: string;
   baseUrl?: string;
   apiKey?: string;
-  apiFormat?: string;
   defaultModel?: string;
   haikuModel?: string;
   opusModel?: string;
   sonnetModel?: string;
   template?: string;
+  target?: string;
 }): void {
-  let provider: Partial<Provider> = { models: {} };
+  const target = args.target || 'claude';
+  let provider: Partial<Provider> = { models: {}, target: target as any };
 
   // If template specified, use it
   if (args.template) {
@@ -207,7 +257,8 @@ export function addProviderFromArgs(args: {
       website: template.website,
       baseUrl: template.baseUrl,
       apiFormat: template.apiFormat,
-      models: { ...template.defaultModels }
+      models: { ...template.defaultModels },
+      target: (template as any).target || target as any
     };
   }
 
@@ -216,9 +267,8 @@ export function addProviderFromArgs(args: {
   provider.website = args.website || provider.website || 'https://example.com';
   provider.baseUrl = args.baseUrl || provider.baseUrl;
   provider.apiKey = args.apiKey || '';
-  provider.apiFormat = (args.apiFormat as 'anthropic-messages' | 'openai-completions')
-    || provider.apiFormat
-    || 'anthropic-messages';
+  // Set apiFormat based on target
+  provider.apiFormat = target === 'codex' ? 'openai-completions' : 'anthropic-messages';
 
   provider.models = {
     default: args.defaultModel || provider.models?.default,
@@ -241,13 +291,14 @@ export function addProviderFromArgs(args: {
   }
 
   const newProvider: Provider = {
-    id: generateProviderId(provider.name),
+    id: generateProviderId(provider.name, provider.target as string),
     name: provider.name,
     website: provider.website,
     apiKey: provider.apiKey,
     baseUrl: provider.baseUrl,
     apiFormat: provider.apiFormat,
-    models: provider.models
+    models: provider.models,
+    target: provider.target
   };
 
   configStore.addProvider(newProvider);
@@ -256,7 +307,7 @@ export function addProviderFromArgs(args: {
   console.log(`Provider ID: ${newProvider.id}`);
 }
 
-function generateProviderId(name: string): string {
-  const hash = crypto.createHash('md5').update(name).digest('hex');
+function generateProviderId(name: string, target: string = 'claude'): string {
+  const hash = crypto.createHash('md5').update(`${target}:${name}`).digest('hex');
   return hash.substring(0, 8);
 }
