@@ -19,7 +19,7 @@ async function getCategories(): Promise<string[]> {
     });
     return (response.data as any[]).map((item: any) => item.name);
   } catch {
-    return ['claude'];
+    return ['claude', 'codex'];
   }
 }
 

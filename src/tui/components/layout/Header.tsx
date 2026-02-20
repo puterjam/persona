@@ -1,12 +1,14 @@
 import type { ThemeColors } from "../../utils/theme"
+import type { CliTarget } from "../../../types"
 import { VERSION } from "../../version"
 
 interface HeaderProps {
   colors: ThemeColors
   version: string
+  cliTarget?: CliTarget
 }
 
-export function Header({ colors, version }: HeaderProps) {
+export function Header({ colors, version, cliTarget }: HeaderProps) {
   return (
     <>
       <box
@@ -32,6 +34,20 @@ export function Header({ colors, version }: HeaderProps) {
       >
         <span fg={colors.textMuted}>AI Coding CLI Provider Manager</span>
       </text>
+      {cliTarget && (
+        <box
+          position="absolute"
+          top={4}
+          right={3}
+          backgroundColor={colors.primaryLight}
+          paddingX={1}
+          paddingY={0}
+        >
+          <text>
+            <span fg={colors.text}>{cliTarget.toUpperCase()}</span>
+          </text>
+        </box>
+      )}
     </>
   )
 }

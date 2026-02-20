@@ -3,7 +3,7 @@
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { configStore } from '../config/store';
-import { testProvider } from '../utils/api';
+import { testProvider } from '../utils/api/index';
 import { Provider } from '../types';
 
 export async function testProviderInteractive(): Promise<void> {

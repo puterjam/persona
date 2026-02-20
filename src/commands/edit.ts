@@ -4,7 +4,6 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { configStore } from '../config/store';
 import { Provider } from '../types';
-import { API_FORMAT_OPTIONS } from '../utils/constants';
 
 export async function editProviderInteractive(providerId: string): Promise<void> {
   const provider = configStore.getProvider(providerId);
@@ -15,7 +14,9 @@ export async function editProviderInteractive(providerId: string): Promise<void>
     return;
   }
 
-  const answers = await inquirer.prompt([
+  const isCodex = provider.target === 'codex';
+
+  const questions: any[] = [
     {
       type: 'input',
       name: 'name',
@@ -39,53 +40,69 @@ export async function editProviderInteractive(providerId: string): Promise<void>
       name: 'apiKey',
       message: 'API Key (leave empty to keep current):',
       default: '',
-      validate: (input) => input.length > 0 ? true : true // Allow empty to keep current
-    },
-    {
-      type: 'list',
-      name: 'apiFormat',
-      message: 'API Format:',
-      default: provider.apiFormat,
-      choices: API_FORMAT_OPTIONS
+      validate: (input: string) => input.length > 0 ? true : true
     },
     {
       type: 'input',
       name: 'defaultModel',
       message: 'Default model name:',
       default: provider.models.default || ''
-    },
-    {
+    }
+  ];
+
+  if (isCodex) {
+    questions.push({
+      type: 'input',
+      name: 'wireApi',
+      message: 'Wire API (responses/completions):',
+      default: provider.wireApi || 'responses'
+    });
+    questions.push({
+      type: 'confirm',
+      name: 'requiresOpenAiAuth',
+      message: 'Requires OpenAI authentication?',
+      default: provider.requiresOpenAiAuth !== false
+    });
+  } else {
+    questions.push({
       type: 'input',
       name: 'haikuModel',
       message: 'Haiku model name:',
       default: provider.models.haiku || ''
-    },
-    {
+    });
+    questions.push({
       type: 'input',
       name: 'opusModel',
       message: 'Opus model name:',
       default: provider.models.opus || ''
-    },
-    {
+    });
+    questions.push({
       type: 'input',
       name: 'sonnetModel',
       message: 'Sonnet model name:',
       default: provider.models.sonnet || ''
-    }
-  ]);
+    });
+  }
+
+  const answers = await inquirer.prompt(questions);
 
   const updates: Partial<Provider> = {
     name: answers.name,
     website: answers.website,
     baseUrl: answers.baseUrl,
-    apiFormat: answers.apiFormat as 'anthropic-messages' | 'openai-completions',
     models: {
-      default: answers.defaultModel || undefined,
-      haiku: answers.haikuModel || undefined,
-      opus: answers.opusModel || undefined,
-      sonnet: answers.sonnetModel || undefined
+      default: answers.defaultModel || undefined
     }
   };
+
+  if (isCodex) {
+    updates.wireApi = answers.wireApi;
+    updates.requiresOpenAiAuth = answers.requiresOpenAiAuth;
+  } else {
+    updates.models.haiku = answers.haikuModel || undefined;
+    updates.models.opus = answers.opusModel || undefined;
+    updates.models.sonnet = answers.sonnetModel || undefined;
+  }
 
   // Only update API key if provided
   if (answers.apiKey) {
@@ -102,7 +119,6 @@ export function editProviderFromArgs(providerId: string, args: {
   website?: string;
   baseUrl?: string;
   apiKey?: string;
-  apiFormat?: string;
   defaultModel?: string;
   haikuModel?: string;
   opusModel?: string;
@@ -122,9 +138,6 @@ export function editProviderFromArgs(providerId: string, args: {
   if (args.website) updates.website = args.website;
   if (args.baseUrl) updates.baseUrl = args.baseUrl;
   if (args.apiKey) updates.apiKey = args.apiKey;
-  if (args.apiFormat) {
-    updates.apiFormat = args.apiFormat as 'anthropic-messages' | 'openai-completions';
-  }
 
   if (args.defaultModel || args.haikuModel || args.opusModel || args.sonnetModel) {
     updates.models = {

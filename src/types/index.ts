@@ -1,5 +1,7 @@
 // Type definitions for Persona
 
+export type CliTarget = "claude" | "codex";
+
 export interface ProviderModels {
   haiku?: string;
   opus?: string;
@@ -13,19 +15,28 @@ export interface Provider {
   website: string;
   apiKey: string;
   baseUrl: string;
-  apiFormat: 'anthropic-messages' | 'openai-completions';
+  apiFormat: "anthropic-messages" | "openai-completions";
   models: ProviderModels;
   isDefault?: boolean;
   extraEnv?: Record<string, string>;
+  target?: CliTarget;
+  // Codex specific
+  wireApi?: string;
+  requiresOpenAiAuth?: boolean;
+  envKey?: string;
 }
 
 export interface GeneralConfig {
   [key: string]: string | undefined;
+  // Codex-specific config stored as TOML-compatible object
+  codex?: Record<string, string | boolean | number>;
 }
 
 export interface PersonaConfig {
   providers: Provider[];
-  activeProvider: string;
+  activeClaudeProvider?: string;
+  activeCodexProvider?: string;
+  activeProvider?: string;
   generalConfig?: GeneralConfig;
   theme?: string;
 }

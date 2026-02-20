@@ -1,5 +1,38 @@
 # Changelog
 
+## v1.3.0
+
+### Features
+- **Codex CLI Support** - New support for OpenAI Codex CLI provider management
+  - Separate provider management for Claude CLI and Codex CLI
+  - `persona add --target codex` - Add provider for Codex
+  - `persona add --target claude` - Add provider for Claude (default)
+  - `persona use --target codex <provider-id>` - Switch Codex provider
+  - `persona use --target claude <provider-id>` - Switch Claude provider
+  - `persona ls --target codex` - List Codex providers
+  - `persona ls --target claude` - List Claude providers
+
+### Codex-Specific
+- **Wire API** - Configure API type (responses/completions/chat)
+- **Authentication Options** - Support for custom env keys or OpenAI auth
+- **Codex Templates** - New template category for Codex-compatible providers (Ollama)
+
+### TUI Improvements
+- **CLI Target Switching** - Press `Tab` to switch between Claude and Codex mode
+- **Target-Aware Provider List** - Filter providers by selected CLI target
+- **Enhanced Detail Panel** - Shows target-specific configuration
+
+### Configuration Changes
+- Separate config storage for Claude (`general/claude.json`) and Codex (`general/codex.toml`)
+- Provider ID generation now includes target prefix for uniqueness
+- Active provider tracking split into `activeClaudeProvider` and `activeCodexProvider`
+
+### Refactoring
+- Extract dialog logic to `useDialogs` hook
+- Extract provider management to `useProviders` hook
+- Modularize TUI components (ProviderList, detail panels)
+- Add `@iarna/toml` for TOML file handling
+
 ## v1.2.2
 
 ### Features

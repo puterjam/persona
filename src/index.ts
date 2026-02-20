@@ -1,10 +1,7 @@
 #!/usr/bin/env bun
 
-// Set UTF-8 locale for TUI Chinese character display
 process.env.LC_ALL = 'en_US.UTF-8';
 process.env.LANG = 'en_US.UTF-8';
-
-// Persona - CLI tool to switch Claude CLI configurations
 
 import chalk from 'chalk';
 import { parseArgs } from 'util';
@@ -19,85 +16,8 @@ import { showTheme, listThemes, setTheme } from './commands/theme';
 import { showEnvConfig, editEnvConfig } from './commands/env';
 import { syncAssets } from './commands/sync';
 import { startInteractiveMode } from './tui';
-
-const commands = {
-  ls: {
-    description: 'List all configured providers',
-    usage: 'persona list'
-  },
-  use: {
-    description: 'Switch to a provider',
-    usage: 'persona use <provider-id>'
-  },
-  add: {
-    description: 'Add a new provider (interactive or with flags)',
-    usage: 'persona add [--template <name>] [--name <name>] [--base-url <url>] [--api-key <key>] [--api-format <format>] [--default-model <model>] [--haiku-model <model>] [--opus-model <model>] [--sonnet-model <model>]'
-  },
-  edit: {
-    description: 'Edit an existing provider',
-    usage: 'persona edit <provider-id> [--name <name>] [--base-url <url>] [--api-key <key>] [--api-format <format>]'
-  },
-  remove: {
-    aliases: ['rm', 'del'],
-    description: 'Delete a provider',
-    usage: 'persona remove <provider-id>'
-  },
-  ping: {
-    description: 'Test provider API connection',
-    usage: 'persona ping [provider-id]'
-  },
-  info: {
-    description: 'Show current status',
-    usage: 'persona status'
-  },
-  templates: {
-    aliases: ['template'],
-    description: 'List available provider templates',
-    usage: 'persona templates'
-  },
-  theme: {
-    description: 'Manage themes (list, show, set)',
-    usage: 'persona theme [list|<name>]'
-  },
-  env: {
-    description: 'Manage environment variable overrides',
-    usage: 'persona env [edit|show]'
-  },
-  sync: {
-    description: 'Sync templates and themes from GitHub',
-    usage: 'persona sync [--templates] [--themes] [--all] [--force]'
-  },
-  help: {
-    aliases: ['h', '?'],
-    description: 'Show help information',
-    usage: 'persona help [command]'
-  }
-};
-
-function showHelp(command?: string): void {
-  if (command && commands[command as keyof typeof commands]) {
-    const cmd = commands[command as keyof typeof commands];
-    console.log(chalk.bold(`\nUsage: ${cmd.usage}\n`));
-    console.log(`${cmd.description}\n`);
-  } else {
-    console.log(chalk.bold('\nPersona - AI Coding CLI Provider Manager\n'));
-    console.log('Usage: persona <command> [options]\n');
-    console.log(chalk.bold('Commands:'));
-
-    Object.entries(commands).forEach(([name, cmd]) => {
-      const aliases = cmd.aliases ? ` (${cmd.aliases.join(', ')})` : '';
-      console.log(`  ${name}${aliases}`);
-      console.log(`    ${cmd.description}`);
-    });
-
-    console.log(chalk.bold('\nExamples:'));
-    console.log('  persona list');
-    console.log('  persona use abc12345');
-    console.log('  persona add --template openai --api-key sk-xxx');
-    console.log('  persona ping');
-    console.log();
-  }
-}
+import { aliasMap, commands } from './cli/commands';
+import { showHelp } from './cli/help';
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -108,57 +28,48 @@ async function main(): Promise<void> {
   }
 
   const command = args[0];
-
-  // Handle aliases
-  const aliasMap: Record<string, string> = {
-    ls: 'list',
-    new: 'add',
-    delete: 'remove',
-    rm: 'remove',
-    del: 'remove',
-    info: 'status',
-    current: 'status',
-    template: 'templates',
-    h: 'help',
-    '?': 'help'
-  };
-
   const resolvedCommand = aliasMap[command] || command;
 
   try {
     switch (resolvedCommand) {
       case 'list': {
-        listProviders();
+        const parsed = parseArgs({
+          args: args.slice(1),
+          options: {
+            target: { type: 'string', short: 't', default: 'claude' }
+          },
+          strict: false
+        });
+        listProviders(parsed.values.target as string);
         break;
       }
 
       case 'use': {
-        // Parse options for use command
         const parsed = parseArgs({
           args: args.slice(1),
           options: {
-            update: { type: 'boolean', short: 'u', default: false }
+            update: { type: 'boolean', short: 'u', default: false },
+            target: { type: 'string', short: 't', default: 'claude' }
           },
           strict: false
         });
 
         const remainingArgs = parsed.positionals;
         const shouldUpdate = parsed.values.update === true;
+        const target = parsed.values.target as string;
 
         if (remainingArgs.length < 1 && !shouldUpdate) {
-          await switchProviderInteractive();
+          await switchProviderInteractive(target);
         } else if (shouldUpdate) {
-          // Update Claude config without switching provider
           const { updateClaudeConfig } = await import('./commands/switch');
           updateClaudeConfig();
         } else {
-          switchProvider(remainingArgs[0], true);
+          switchProvider(remainingArgs[0], true, target as any);
         }
         break;
       }
 
       case 'add': {
-        // Parse additional arguments
         const parsed = parseArgs({
           args: args.slice(1),
           options: {
@@ -167,17 +78,17 @@ async function main(): Promise<void> {
             'website': { type: 'string' },
             'base-url': { type: 'string' },
             'api-key': { type: 'string' },
-            'api-format': { type: 'string' },
             'default-model': { type: 'string' },
             'haiku-model': { type: 'string' },
             'opus-model': { type: 'string' },
-            'sonnet-model': { type: 'string' }
+            'sonnet-model': { type: 'string' },
+            'target': { type: 'string', short: 't', default: 'claude' }
           },
           strict: false
         });
 
-        if (Object.keys(parsed.values).length === 0) {
-          await addProviderInteractive();
+        if (Object.keys(parsed.positionals).length === 0 && Object.keys(parsed.values).length <= 1) {
+          await addProviderInteractive(parsed.values.target as string);
         } else {
           addProviderFromArgs({
             template: parsed.values.template as string,
@@ -185,11 +96,11 @@ async function main(): Promise<void> {
             website: parsed.values.website as string,
             baseUrl: parsed.values['base-url'] as string,
             apiKey: parsed.values['api-key'] as string,
-            apiFormat: parsed.values['api-format'] as string,
             defaultModel: parsed.values['default-model'] as string,
             haikuModel: parsed.values['haiku-model'] as string,
             opusModel: parsed.values['opus-model'] as string,
-            sonnetModel: parsed.values['sonnet-model'] as string
+            sonnetModel: parsed.values['sonnet-model'] as string,
+            target: parsed.values.target as string
           });
         }
         break;
@@ -209,7 +120,6 @@ async function main(): Promise<void> {
             'website': { type: 'string' },
             'base-url': { type: 'string' },
             'api-key': { type: 'string' },
-            'api-format': { type: 'string' },
             'default-model': { type: 'string' },
             'haiku-model': { type: 'string' },
             'opus-model': { type: 'string' },
@@ -226,7 +136,6 @@ async function main(): Promise<void> {
             website: parsed.values.website as string,
             baseUrl: parsed.values['base-url'] as string,
             apiKey: parsed.values['api-key'] as string,
-            apiFormat: parsed.values['api-format'] as string,
             defaultModel: parsed.values['default-model'] as string,
             haikuModel: parsed.values['haiku-model'] as string,
             opusModel: parsed.values['opus-model'] as string,
@@ -237,10 +146,20 @@ async function main(): Promise<void> {
       }
 
       case 'remove': {
-        if (args.length < 2) {
-          await deleteProviderInteractive();
+        const parsed = parseArgs({
+          args: args.slice(1),
+          options: {
+            target: { type: 'string', short: 't', default: 'claude' }
+          },
+          strict: false
+        });
+
+        const remainingArgs = parsed.positionals;
+
+        if (remainingArgs.length < 1) {
+          await deleteProviderInteractive(undefined, parsed.values.target as string);
         } else {
-          deleteProvider(args[1]);
+          deleteProvider(remainingArgs[0]);
         }
         break;
       }
@@ -301,12 +220,12 @@ async function main(): Promise<void> {
       case 'env': {
         const subCommand = args[1];
         if (subCommand === 'edit') {
-          editEnvConfig();
+          editEnvConfig(args.slice(2));
         } else if (subCommand === 'show' || !subCommand) {
           showEnvConfig();
         } else {
           console.log(chalk.red(`Unknown env subcommand: ${subCommand}`));
-          console.log(chalk.yellow('Usage: persona env [edit|show]'));
+          console.log(chalk.yellow('Usage: persona env [edit] [claude|codex]'));
           process.exit(1);
         }
         break;

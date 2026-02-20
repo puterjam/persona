@@ -85,7 +85,7 @@ export function InputDialog({ title, message, defaultValue = "", required = fals
           left={padding}
           top={4}
           width={dialogWidth - padding * 2 - 2}
-          placeholder={defaultValue || "(leave empty to keep current)"}
+          placeholder={defaultValue || "(empty)"}
           focused={true}
           textColor={colors.text}
           cursorColor={colors.textMuted}
