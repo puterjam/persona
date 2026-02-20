@@ -5,25 +5,26 @@ import * as path from 'path';
 import * as toml from '@iarna/toml';
 import { Provider, CliAdapter } from '../../types';
 
-const CODEX_DIR = path.join(process.env.HOME || '/root', '.codex');
-const CODEX_CONFIG_FILE = path.join(CODEX_DIR, 'config.toml');
-const CODEX_AUTH_FILE = path.join(CODEX_DIR, 'auth.json');
-const CODEX_GENERAL_CONFIG_FILE = path.join(
-  process.env.HOME || '/root',
-  '.persona',
-  'general',
-  'codex.toml'
-);
-
 export class CodexAdapter implements CliAdapter {
   readonly target: 'codex' = 'codex';
-  readonly configFile = CODEX_GENERAL_CONFIG_FILE;
-  readonly settingsFile = CODEX_CONFIG_FILE;
+  readonly configFile: string;
+  readonly settingsFile: string;
+  private authFile: string;
+
+  constructor(configDir: string = '') {
+    const homeDir = process.env.HOME || '/root';
+    const codexDir = path.join(homeDir, '.codex');
+    this.settingsFile = path.join(codexDir, 'config.toml');
+    this.authFile = path.join(codexDir, 'auth.json');
+    this.configFile = configDir 
+      ? path.join(configDir, 'general', 'codex.toml')
+      : path.join(homeDir, '.persona', 'general', 'codex.toml');
+  }
 
   private readCodexConfig(): Record<string, any> {
     try {
-      if (fs.existsSync(CODEX_CONFIG_FILE)) {
-        const data = fs.readFileSync(CODEX_CONFIG_FILE, 'utf-8');
+      if (fs.existsSync(this.settingsFile)) {
+        const data = fs.readFileSync(this.settingsFile, 'utf-8');
         return toml.parse(data) as Record<string, any>;
       }
     } catch (error) {
@@ -33,16 +34,17 @@ export class CodexAdapter implements CliAdapter {
   }
 
   private writeCodexConfig(config: Record<string, any>): void {
-    if (!fs.existsSync(CODEX_DIR)) {
-      fs.mkdirSync(CODEX_DIR, { recursive: true });
+    const dir = path.dirname(this.settingsFile);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
     }
-    fs.writeFileSync(CODEX_CONFIG_FILE, toml.stringify(config));
+    fs.writeFileSync(this.settingsFile, toml.stringify(config));
   }
 
   private readCodexAuth(): Record<string, string> {
     try {
-      if (fs.existsSync(CODEX_AUTH_FILE)) {
-        const data = fs.readFileSync(CODEX_AUTH_FILE, 'utf-8');
+      if (fs.existsSync(this.authFile)) {
+        const data = fs.readFileSync(this.authFile, 'utf-8');
         return JSON.parse(data);
       }
     } catch (error) {
@@ -52,16 +54,17 @@ export class CodexAdapter implements CliAdapter {
   }
 
   private writeCodexAuth(auth: Record<string, string>): void {
-    if (!fs.existsSync(CODEX_DIR)) {
-      fs.mkdirSync(CODEX_DIR, { recursive: true });
+    const dir = path.dirname(this.authFile);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
     }
-    fs.writeFileSync(CODEX_AUTH_FILE, JSON.stringify(auth, null, 2));
+    fs.writeFileSync(this.authFile, JSON.stringify(auth, null, 2));
   }
 
   getGeneralConfig(): Record<string, any> {
     try {
-      if (fs.existsSync(CODEX_GENERAL_CONFIG_FILE)) {
-        const data = fs.readFileSync(CODEX_GENERAL_CONFIG_FILE, 'utf-8');
+      if (fs.existsSync(this.configFile)) {
+        const data = fs.readFileSync(this.configFile, 'utf-8');
         return toml.parse(data);
       }
     } catch (error) {
@@ -72,11 +75,11 @@ export class CodexAdapter implements CliAdapter {
 
   saveGeneralConfig(config: Record<string, any>): void {
     try {
-      const dir = path.dirname(CODEX_GENERAL_CONFIG_FILE);
+      const dir = path.dirname(this.configFile);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
-      fs.writeFileSync(CODEX_GENERAL_CONFIG_FILE, toml.stringify(config));
+      fs.writeFileSync(this.configFile, toml.stringify(config));
     } catch (error) {
       console.error('Failed to save Codex general config:', error);
       throw error;

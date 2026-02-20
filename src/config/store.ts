@@ -3,22 +3,31 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Provider, PersonaConfig, CliTarget } from '../types';
-import { getAdapter } from './adapters';
+import { getAdapter, setConfigDir } from './adapters';
 
-const CONFIG_DIR = path.join(process.env.HOME || '/root', '.persona');
-const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
+const DEFAULT_CONFIG_DIR = path.join(process.env.HOME || '/root', '.persona');
+
+export function createConfigStore(configDir?: string): ConfigStore {
+  const dir = configDir || process.env.PERSONA_CONFIG_DIR || DEFAULT_CONFIG_DIR;
+  setConfigDir(dir);
+  return new ConfigStore(dir);
+}
 
 export class ConfigStore {
   private config: PersonaConfig;
+  private configDir: string;
+  private configFile: string;
 
-  constructor() {
+  constructor(configDir?: string) {
+    this.configDir = configDir || process.env.PERSONA_CONFIG_DIR || DEFAULT_CONFIG_DIR;
+    this.configFile = path.join(this.configDir, 'config.json');
     this.config = this.loadConfig();
   }
 
   private loadConfig(): PersonaConfig {
     try {
-      if (fs.existsSync(CONFIG_FILE)) {
-        const data = fs.readFileSync(CONFIG_FILE, 'utf-8');
+      if (fs.existsSync(this.configFile)) {
+        const data = fs.readFileSync(this.configFile, 'utf-8');
         return JSON.parse(data);
       }
     } catch (error) {
@@ -32,11 +41,11 @@ export class ConfigStore {
 
   private saveConfig(): void {
     try {
-      if (!fs.existsSync(CONFIG_DIR)) {
-        fs.mkdirSync(CONFIG_DIR, { recursive: true });
+      if (!fs.existsSync(this.configDir)) {
+        fs.mkdirSync(this.configDir, { recursive: true });
       }
       const { activeProvider, ...cleanConfig } = this.config;
-      fs.writeFileSync(CONFIG_FILE, JSON.stringify(cleanConfig, null, 2));
+      fs.writeFileSync(this.configFile, JSON.stringify(cleanConfig, null, 2));
     } catch (error) {
       console.error('Failed to save config:', error);
       throw error;
@@ -137,7 +146,11 @@ export class ConfigStore {
   }
 
   getGeneralConfigDir(): string {
-    return path.join(CONFIG_DIR, 'general');
+    return path.join(this.configDir, 'general');
+  }
+
+  getConfigDir(): string {
+    return this.configDir;
   }
 
   // Backward compatibility methods

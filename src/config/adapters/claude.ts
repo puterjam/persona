@@ -5,28 +5,23 @@ import * as path from 'path';
 import { Provider, CliAdapter, ClaudeSettings } from '../../types';
 import { PROVIDER_ENV_KEYS } from '../../utils/constants';
 
-const CLAUDE_SETTINGS_FILE = path.join(
-  process.env.HOME || '/root',
-  '.claude',
-  'settings.json'
-);
-
-const CLAUDE_GENERAL_CONFIG_FILE = path.join(
-  process.env.HOME || '/root',
-  '.persona',
-  'general',
-  'claude.json'
-);
-
 export class ClaudeAdapter implements CliAdapter {
   readonly target: 'claude' = 'claude';
-  readonly configFile = CLAUDE_GENERAL_CONFIG_FILE;
-  readonly settingsFile = CLAUDE_SETTINGS_FILE;
+  readonly configFile: string;
+  readonly settingsFile: string;
+
+  constructor(configDir: string = '') {
+    const homeDir = process.env.HOME || '/root';
+    this.settingsFile = path.join(homeDir, '.claude', 'settings.json');
+    this.configFile = configDir 
+      ? path.join(configDir, 'general', 'claude.json')
+      : path.join(homeDir, '.persona', 'general', 'claude.json');
+  }
 
   getGeneralConfig(): Record<string, any> {
     try {
-      if (fs.existsSync(CLAUDE_GENERAL_CONFIG_FILE)) {
-        const data = fs.readFileSync(CLAUDE_GENERAL_CONFIG_FILE, 'utf-8');
+      if (fs.existsSync(this.configFile)) {
+        const data = fs.readFileSync(this.configFile, 'utf-8');
         return JSON.parse(data);
       }
     } catch (error) {
@@ -37,11 +32,11 @@ export class ClaudeAdapter implements CliAdapter {
 
   saveGeneralConfig(config: Record<string, any>): void {
     try {
-      const dir = path.dirname(CLAUDE_GENERAL_CONFIG_FILE);
+      const dir = path.dirname(this.configFile);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
-      fs.writeFileSync(CLAUDE_GENERAL_CONFIG_FILE, JSON.stringify(config, null, 2));
+      fs.writeFileSync(this.configFile, JSON.stringify(config, null, 2));
     } catch (error) {
       console.error('Failed to save general config:', error);
       throw error;
@@ -50,8 +45,8 @@ export class ClaudeAdapter implements CliAdapter {
 
   getActiveSettings(): Record<string, any> {
     try {
-      if (fs.existsSync(CLAUDE_SETTINGS_FILE)) {
-        const data = fs.readFileSync(CLAUDE_SETTINGS_FILE, 'utf-8');
+      if (fs.existsSync(this.settingsFile)) {
+        const data = fs.readFileSync(this.settingsFile, 'utf-8');
         return JSON.parse(data);
       }
     } catch (error) {
@@ -62,7 +57,11 @@ export class ClaudeAdapter implements CliAdapter {
 
   saveActiveSettings(settings: Record<string, any>): void {
     try {
-      fs.writeFileSync(CLAUDE_SETTINGS_FILE, JSON.stringify(settings, null, 2));
+      const dir = path.dirname(this.settingsFile);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(this.settingsFile, JSON.stringify(settings, null, 2));
     } catch (error) {
       console.error('Failed to save Claude settings:', error);
       throw error;

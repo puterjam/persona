@@ -1,0 +1,57 @@
+[
+  {
+    "id": "test-claude-001",
+    "name": "Test Claude Provider",
+    "website": "https://test-claude.example.com",
+    "apiKey": "sk-test-claude-key",
+    "baseUrl": "https://api.test-claude.example.com/v1",
+    "apiFormat": "anthropic-messages",
+    "models": {
+      "default": "claude-test-model",
+      "haiku": "claude-haiku",
+      "opus": "claude-opus",
+      "sonnet": "claude-sonnet"
+    },
+    "target": "claude"
+  },
+  {
+    "id": "test-claude-002",
+    "name": "Another Claude Provider",
+    "website": "https://another.example.com",
+    "apiKey": "sk-another-key",
+    "baseUrl": "https://api.another.example.com",
+    "apiFormat": "anthropic-messages",
+    "models": {
+      "default": "another-model"
+    },
+    "target": "claude"
+  },
+  {
+    "id": "test-codex-001",
+    "name": "Test Codex Provider",
+    "website": "https://test-codex.example.com",
+    "apiKey": "sk-test-codex-key",
+    "baseUrl": "https://api.test-codex.example.com/v1",
+    "apiFormat": "openai-completions",
+    "models": {
+      "default": "codex-model"
+    },
+    "target": "codex",
+    "wireApi": "responses",
+    "requiresOpenAiAuth": true
+  },
+  {
+    "id": "test-codex-002",
+    "name": "Ollama (Codex)",
+    "website": "https://ollama.com",
+    "apiKey": "",
+    "baseUrl": "http://localhost:11434/v1",
+    "apiFormat": "openai-completions",
+    "models": {
+      "default": "llama3.2"
+    },
+    "target": "codex",
+    "wireApi": "responses",
+    "requiresOpenAiAuth": false
+  }
+]
