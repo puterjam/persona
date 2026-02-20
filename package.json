@@ -1,6 +1,6 @@
 {
   "name": "persona",
-  "version": "1.3.2",
+  "version": "1.3.0",
   "description": "CLI tool to switch Claude CLI configurations between different model providers",
   "type": "module",
   "main": "dist/persona",
