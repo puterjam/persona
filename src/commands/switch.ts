@@ -49,7 +49,7 @@ export async function switchProviderInteractive(target: string = 'claude'): Prom
   if (selectedId === '__reset__') {
     resetToDefault(target);
   } else {
-    switchProvider(selectedId, true, target as any);
+    switchProvider(selectedId, true, target as CliTarget);
   }
 }
 
@@ -133,7 +133,7 @@ export function updateClaudeConfig(): void {
 
   try {
     // Re-apply provider + general config to Claude settings
-    configStore.applyProviderToClaude(activeProvider, true);
+    configStore.applyProvider(activeProvider, true);
 
     console.log(chalk.green(`\nSuccessfully updated Claude configuration.\n`));
     console.log(chalk.bold('Applied:'));

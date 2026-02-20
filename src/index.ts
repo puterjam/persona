@@ -5,6 +5,7 @@ process.env.LANG = 'en_US.UTF-8';
 
 import chalk from 'chalk';
 import { parseArgs } from 'util';
+import { CliTarget } from './types';
 import { listProviders } from './commands/list';
 import { switchProvider, switchProviderInteractive, showStatus } from './commands/switch';
 import { addProviderInteractive, addProviderFromArgs } from './commands/add';
@@ -64,7 +65,7 @@ async function main(): Promise<void> {
           const { updateClaudeConfig } = await import('./commands/switch');
           updateClaudeConfig();
         } else {
-          switchProvider(remainingArgs[0], true, target as any);
+          switchProvider(remainingArgs[0], true, target as CliTarget);
         }
         break;
       }

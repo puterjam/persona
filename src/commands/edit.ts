@@ -90,18 +90,18 @@ export async function editProviderInteractive(providerId: string): Promise<void>
     name: answers.name,
     website: answers.website,
     baseUrl: answers.baseUrl,
-    models: {
-      default: answers.defaultModel || undefined
-    }
   };
 
   if (isCodex) {
     updates.wireApi = answers.wireApi;
     updates.requiresOpenAiAuth = answers.requiresOpenAiAuth;
   } else {
-    updates.models.haiku = answers.haikuModel || undefined;
-    updates.models.opus = answers.opusModel || undefined;
-    updates.models.sonnet = answers.sonnetModel || undefined;
+    updates.models = {
+      default: answers.defaultModel || undefined,
+      haiku: answers.haikuModel || undefined,
+      opus: answers.opusModel || undefined,
+      sonnet: answers.sonnetModel || undefined
+    };
   }
 
   // Only update API key if provided
