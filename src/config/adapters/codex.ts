@@ -144,18 +144,21 @@ export class CodexAdapter implements CliAdapter {
         }
         existingConfig.model_providers[provider.name] = providerConfig;
 
-        if (!existingConfig.profiles) {
-          existingConfig.profiles = {};
+        if (existingConfig.profiles?.persona) {
+          delete existingConfig.profiles.persona;
+          if (Object.keys(existingConfig.profiles).length === 0) {
+            delete existingConfig.profiles;
+          }
         }
-        existingConfig.profiles.persona = {
-          model_provider: provider.name,
-          model: model,
-          disable_response_storage: codexConfig.disable_response_storage !== false,
-        };
+
+        existingConfig.model_provider = provider.name;
+        existingConfig.model = model;
+        existingConfig.disable_response_storage =
+          codexConfig.disable_response_storage !== false;
 
         for (const [key, value] of Object.entries(codexConfig)) {
           if (key !== 'model_provider' && key !== 'model_providers' && key !== 'disable_response_storage') {
-            existingConfig.profiles.persona[key] = value;
+            existingConfig[key] = value;
           }
         }
 
@@ -175,25 +178,29 @@ export class CodexAdapter implements CliAdapter {
   clearConfig(): void {
     try {
       const existingConfig = this.readCodexConfig();
-      const profile = existingConfig.profiles?.persona;
+      const providerName = typeof existingConfig.model_provider === 'string'
+        ? existingConfig.model_provider
+        : undefined;
 
-      if (profile) {
-        const providerName = profile.model_provider;
+      if (existingConfig.profiles?.persona) {
         delete existingConfig.profiles.persona;
-
         if (Object.keys(existingConfig.profiles).length === 0) {
           delete existingConfig.profiles;
         }
-
-        if (providerName && existingConfig.model_providers?.[providerName]) {
-          delete existingConfig.model_providers[providerName];
-          if (Object.keys(existingConfig.model_providers).length === 0) {
-            delete existingConfig.model_providers;
-          }
-        }
-
-        this.writeCodexConfig(existingConfig);
       }
+
+      if (providerName && existingConfig.model_providers?.[providerName]) {
+        delete existingConfig.model_providers[providerName];
+        if (Object.keys(existingConfig.model_providers).length === 0) {
+          delete existingConfig.model_providers;
+        }
+      }
+
+      delete existingConfig.model_provider;
+      delete existingConfig.model;
+      delete existingConfig.disable_response_storage;
+
+      this.writeCodexConfig(existingConfig);
     } catch (e) { /* ignore */ }
   }
 }

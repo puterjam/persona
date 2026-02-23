@@ -167,7 +167,7 @@ export function TuiApp({ renderer }: TuiAppProps) {
     const apiKey = await showInputDialog("Edit API Key", "API Key (leave empty to keep current)", "")
     if (apiKey === null) return
 
-    const defaultModel = await showInputDialog("Edit Default Model", "Default Model", provider.models.default || "", true)
+    const defaultModel = await showInputDialog("Edit Default Model", "Default Model", provider.models.default || "")
     if (defaultModel === null) return
 
     let haikuModel, opusModel, sonnetModel, wireApi, requiresOpenAiAuth
@@ -269,7 +269,7 @@ export function TuiApp({ renderer }: TuiAppProps) {
     const apiKey = await showInputDialog("Enter API Key", "API Key", "", true)
     if (!apiKey) return
 
-    const defaultModel = await showInputDialog("Default Model", "Default model name:", defaults.models?.default || "", true)
+    const defaultModel = await showInputDialog("Default Model", "Default model name:", defaults.models?.default || "")
     if (defaultModel === null) return
 
     let haikuModel, opusModel, sonnetModel, wireApi, requiresOpenAiAuth
@@ -370,7 +370,7 @@ export function TuiApp({ renderer }: TuiAppProps) {
     { name: !activeProvider ? `(Default) ✓` : "(Default)", description: defaultLabel, value: "default" },
     ...providers.map((p: Provider) => ({
       name: activeProvider?.id === p.id ? `${p.name} ✓` : p.name,
-      description: p.models.default || "",
+      description: p.models.default || "(default set)",
       value: p.id
     }))
   ]

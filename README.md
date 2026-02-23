@@ -165,10 +165,10 @@ Example Codex providers:
 After switching to a Codex provider, run:
 
 ```bash
-codex --profile persona
+codex
 ```
 
-This uses the `persona` profile configured by Persona.
+This uses the default Codex config written by Persona.
 
 ## Configuration Files
 

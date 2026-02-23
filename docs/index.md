@@ -106,8 +106,8 @@ persona add --target codex
 persona use <provider-id>
 persona use --target codex <provider-id>
 
-# For Codex, use the persona profile
-codex --profile persona
+# For Codex, use the default config
+codex
 
 # Test connection
 persona ping
