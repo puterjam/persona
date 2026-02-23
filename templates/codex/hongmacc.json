@@ -1,0 +1,14 @@
+{
+  "name": "HongMac",
+  "website": "https://hongmacc.com",
+  "baseUrl": "https://hongmacc.com/openai",
+  "apiKey": "",
+  "apiFormat": "openai-completions",
+  "defaultModels": {
+    "default": "gpt-5-codex"
+  },
+  "target": "codex",
+  "wireApi": "responses",
+  "requiresOpenAiAuth": true,
+  "description": "HongMac API for Codex"
+}

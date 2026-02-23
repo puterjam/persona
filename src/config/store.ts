@@ -251,60 +251,62 @@ export class ConfigStore {
 
   applyProviderToCodex(provider: Provider, updateCodex: boolean = false): void {
     if (!provider.apiKey) {
-      console.error('Codex provider requires an API key');
-      return;
+      console.error("Codex provider requires an API key")
+      return
     }
 
-    const codexConfig = this.getCodexGeneralConfig();
+    const codexConfig = this.getCodexGeneralConfig()
 
-    const model = provider.models.default || provider.models.haiku || 'gpt-4o';
+    const model = provider.models.default || provider.models.haiku || "gpt-4o"
 
     const providerConfig: Record<string, any> = {
       name: provider.name,
-      wire_api: provider.wireApi || 'responses',
+      wire_api: provider.wireApi || "responses",
       base_url: provider.baseUrl
-    };
+    }
 
     if (provider.envKey) {
-      providerConfig.env_key = provider.envKey;
-      providerConfig.requires_openai_auth = false;
+      providerConfig.env_key = provider.envKey
+      providerConfig.requires_openai_auth = false
     } else {
-      providerConfig.requires_openai_auth = provider.requiresOpenAiAuth !== false;
+      providerConfig.requires_openai_auth = provider.requiresOpenAiAuth !== false
     }
 
     if (updateCodex) {
       try {
-        const existingConfig = this.readCodexConfig();
+        const existingConfig = this.readCodexConfig()
 
         if (!existingConfig.model_providers) {
-          existingConfig.model_providers = {};
+          existingConfig.model_providers = {}
         }
-        existingConfig.model_providers[provider.name] = providerConfig;
+        existingConfig.model_providers[provider.name] = providerConfig
 
-        if (!existingConfig.profiles) {
-          existingConfig.profiles = {};
-        }
-        existingConfig.profiles.persona = {
-          model_provider: provider.name,
-          model: model,
-          disable_response_storage: codexConfig.disable_response_storage !== false,
-        };
-
-        for (const [key, value] of Object.entries(codexConfig)) {
-          if (key !== 'model_provider' && key !== 'model_providers' && key !== 'disable_response_storage') {
-            existingConfig.profiles.persona[key] = value;
+        if (existingConfig.profiles?.persona) {
+          delete existingConfig.profiles.persona
+          if (Object.keys(existingConfig.profiles).length === 0) {
+            delete existingConfig.profiles
           }
         }
 
-        this.writeCodexConfig(existingConfig);
+        existingConfig.model_provider = provider.name
+        existingConfig.model = model
+        existingConfig.disable_response_storage = codexConfig.disable_response_storage !== false
 
-        const authKeyName = provider.envKey || 'OPENAI_API_KEY';
-        const existingAuth = this.readCodexAuth();
-        existingAuth[authKeyName] = provider.apiKey;
-        this.writeCodexAuth(existingAuth);
+        for (const [key, value] of Object.entries(codexConfig)) {
+          if (key !== "model_provider" && key !== "model_providers" && key !== "disable_response_storage") {
+            existingConfig[key] = value
+          }
+        }
+
+        this.writeCodexConfig(existingConfig)
+
+        const authKeyName = provider.envKey || "OPENAI_API_KEY"
+        const existingAuth = this.readCodexAuth()
+        existingAuth[authKeyName] = provider.apiKey
+        this.writeCodexAuth(existingAuth)
       } catch (error) {
-        console.error('Failed to save Codex settings:', error);
-        throw error;
+        console.error("Failed to save Codex settings:", error)
+        throw error
       }
     }
   }
@@ -349,26 +351,30 @@ export class ConfigStore {
   clearProviderConfig(target: CliTarget = 'claude'): void {
     if (target === 'codex') {
       try {
-        const existingConfig = this.readCodexConfig();
-        const profile = existingConfig.profiles?.persona;
+        const existingConfig = this.readCodexConfig()
+        const providerName = typeof existingConfig.model_provider === "string"
+          ? existingConfig.model_provider
+          : undefined
 
-        if (profile) {
-          const providerName = profile.model_provider;
-          delete existingConfig.profiles.persona;
-
+        if (existingConfig.profiles?.persona) {
+          delete existingConfig.profiles.persona
           if (Object.keys(existingConfig.profiles).length === 0) {
-            delete existingConfig.profiles;
+            delete existingConfig.profiles
           }
-
-          if (providerName && existingConfig.model_providers?.[providerName]) {
-            delete existingConfig.model_providers[providerName];
-            if (Object.keys(existingConfig.model_providers).length === 0) {
-              delete existingConfig.model_providers;
-            }
-          }
-
-          this.writeCodexConfig(existingConfig);
         }
+
+        if (providerName && existingConfig.model_providers?.[providerName]) {
+          delete existingConfig.model_providers[providerName]
+          if (Object.keys(existingConfig.model_providers).length === 0) {
+            delete existingConfig.model_providers
+          }
+        }
+
+        delete existingConfig.model_provider
+        delete existingConfig.model
+        delete existingConfig.disable_response_storage
+
+        this.writeCodexConfig(existingConfig)
       } catch (e) { /* ignore */ }
     } else {
       const settings = this.getClaudeSettings();

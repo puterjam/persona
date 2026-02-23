@@ -165,10 +165,10 @@ Persona 支持管理多种 AI CLI 工具的 providers：
 切换到 Codex provider 后，运行：
 
 ```bash
-codex --profile persona
+codex
 ```
 
-这将使用 Persona 配置的 `persona` 配置集。
+这将使用 Persona 写入的默认 Codex 配置。
 
 ## 配置文件
 
