@@ -1,6 +1,11 @@
 import { useState } from "react"
 import { useRenderer, useKeyboard } from "@opentui/react"
+import type { SelectKeyBinding } from "@opentui/core"
 import { getThemeColors, layout } from "../../../utils/theme"
+
+const kpenterBindings: SelectKeyBinding[] = [
+  { name: "kpenter", action: "select-current" }
+]
 
 interface ListDialogProps {
   title: string
@@ -90,6 +95,7 @@ export function ListDialog({ title, choices, onClose }: ListDialogProps) {
           selectedTextColor={colors.selectedText}
           showDescription={false}
           focused={true}
+          keyBindings={kpenterBindings}
           zIndex={202}
         />
         <text

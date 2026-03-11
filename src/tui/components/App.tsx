@@ -203,6 +203,15 @@ export function TuiApp({ renderer }: TuiAppProps) {
     if (apiKey) updates.apiKey = apiKey
 
     updateProvider(provider.id, updates)
+
+    // Re-apply config if editing the active provider
+    if (activeProvider?.id === provider.id) {
+      const updatedProvider = configStore.getProvider(provider.id)
+      if (updatedProvider) {
+        configStore.applyProvider(updatedProvider, true)
+      }
+    }
+
     setListContainerKey(k => k + 1)
     setDetailContent({ type: "message", message: `✓ Provider "${name}" updated successfully!` })
     updateStatus("Provider updated")

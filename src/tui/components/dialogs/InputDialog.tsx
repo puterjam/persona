@@ -24,7 +24,7 @@ export function InputDialog({ title, message, defaultValue = "", required = fals
   const handleKey = useCallback((key: any) => {
     if (key.name === "escape") {
       onClose(null)
-    } else if (key.name === "return") {
+    } else if (key.name === "return" || key.name === "kpenter") {
       const trimmed = value.trim()
       if (!required || trimmed !== "") {
         onClose(value)
