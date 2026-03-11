@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { configStore } from '../config/store';
 import { getTemplateNames, getTemplateByFullName } from '../config/templates';
-import { Provider } from '../types';
+import { Provider, ProviderTemplate, CliTarget } from '../types';
 import { API_FORMAT_OPTIONS } from '../utils/constants';
 import * as crypto from 'crypto';
 
@@ -62,10 +62,11 @@ export async function promptForTemplate(target: string = 'claude'): Promise<Prov
   const templateNames = getTemplateNames();
   const filteredTemplates = templateNames.filter(name => {
     const t = getTemplateByFullName(name);
+    if (!t) return false;
     if (target === 'codex') {
-      return t && (t as any).target === 'codex';
+      return t.target === 'codex';
     } else {
-      return t && !(t as any).target || (t as any).target === 'claude';
+      return !t.target || t.target === 'claude';
     }
   });
 
@@ -86,7 +87,7 @@ export async function promptForTemplate(target: string = 'claude'): Promise<Prov
     }
   ]);
 
-  const template = getTemplateByFullName(selectedTemplate);
+  const template = getTemplateByFullName(selectedTemplate) as ProviderTemplate | undefined;
   if (template) {
     return {
       name: template.name,
@@ -94,10 +95,10 @@ export async function promptForTemplate(target: string = 'claude'): Promise<Prov
       baseUrl: template.baseUrl,
       apiFormat: template.apiFormat,
       models: { ...template.defaultModels },
-      target: (template as any).target,
-      wireApi: (template as any).wireApi,
-      requiresOpenAiAuth: (template as any).requiresOpenAiAuth,
-      envKey: (template as any).envKey
+      target: template.target,
+      wireApi: template.wireApi,
+      requiresOpenAiAuth: template.requiresOpenAiAuth,
+      envKey: template.envKey
     };
   }
 
@@ -191,7 +192,7 @@ export async function promptForProviderDetails(defaults: ProviderFormDefaults = 
       opus: answers.opusModel || undefined,
       sonnet: answers.sonnetModel || undefined
     },
-    target: target as any,
+    target: target as CliTarget,
     wireApi: answers.wireApi || undefined,
     requiresOpenAiAuth: answers.requiresOpenAiAuth,
     envKey: defaults.envKey || undefined
@@ -242,11 +243,11 @@ export function addProviderFromArgs(args: {
   target?: string;
 }): void {
   const target = args.target || 'claude';
-  let provider: Partial<Provider> = { models: {}, target: target as any };
+  let provider: Partial<Provider> = { models: {}, target: target as CliTarget };
 
   // If template specified, use it
   if (args.template) {
-    const template = getTemplateByFullName(args.template);
+    const template = getTemplateByFullName(args.template) as ProviderTemplate | undefined;
     if (!template) {
       console.log(chalk.red(`Template "${args.template}" not found.`));
       console.log(chalk.yellow(`Available templates: ${getTemplateNames().join(', ')}`));
@@ -258,7 +259,7 @@ export function addProviderFromArgs(args: {
       baseUrl: template.baseUrl,
       apiFormat: template.apiFormat,
       models: { ...template.defaultModels },
-      target: (template as any).target || target as any
+      target: template.target || (target as CliTarget)
     };
   }
 

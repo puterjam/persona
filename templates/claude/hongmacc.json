@@ -1,0 +1,13 @@
+{
+  "name": "HongMac",
+  "website": "https://hongmacc.com",
+  "baseUrl": "https://hongmacc.com/api",
+  "apiFormat": "anthropic-messages",
+  "defaultModels": {
+    "haiku": "",
+    "sonnet": "",
+    "opus": "",
+    "default": ""
+  },
+  "description": "HongMac API"
+}

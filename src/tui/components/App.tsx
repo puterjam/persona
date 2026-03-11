@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { useKeyboard } from "@opentui/react"
 import type { CliRenderer, SelectOption } from "@opentui/core"
-import type { Provider, CliTarget } from "../../types"
+import type { Provider, CliTarget, ProviderTemplate } from "../../types"
 import { configStore } from "../../config/store"
 import { getThemeColors, loadTheme, getThemeNames, setThemeColors } from "../../utils/theme"
 import { Header } from "./layout/Header"
@@ -167,7 +167,7 @@ export function TuiApp({ renderer }: TuiAppProps) {
     const apiKey = await showInputDialog("Edit API Key", "API Key (leave empty to keep current)", "")
     if (apiKey === null) return
 
-    const defaultModel = await showInputDialog("Edit Default Model", "Default Model", provider.models.default || "", true)
+    const defaultModel = await showInputDialog("Edit Default Model", "Default Model", provider.models.default || "")
     if (defaultModel === null) return
 
     let haikuModel, opusModel, sonnetModel, wireApi, requiresOpenAiAuth
@@ -221,10 +221,11 @@ export function TuiApp({ renderer }: TuiAppProps) {
       const templateNames = getTemplateNames()
       const filteredTemplates = templateNames.filter((name: string) => {
         const t = getTemplateByFullName(name)
+        if (!t) return false
         if (isCodex) {
-          return t && (t as any).target === "codex"
+          return t.target === "codex"
         } else {
-          return t && !(t as any).target || (t as any).target === "claude"
+          return !t.target || t.target === "claude"
         }
       })
 
@@ -239,16 +240,17 @@ export function TuiApp({ renderer }: TuiAppProps) {
         if (selectedTemplate) {
           const template = getTemplateByFullName(selectedTemplate)
           if (template) {
+            const t = template as ProviderTemplate
             defaults = {
-              name: template.name,
-              website: template.website,
-              baseUrl: template.baseUrl,
-              apiFormat: template.apiFormat,
-              models: { ...template.defaultModels },
-              target: (template as any).target,
-              wireApi: (template as any).wireApi,
-              requiresOpenAiAuth: (template as any).requiresOpenAiAuth,
-              envKey: (template as any).envKey,
+              name: t.name,
+              website: t.website,
+              baseUrl: t.baseUrl,
+              apiFormat: t.apiFormat,
+              models: { ...t.defaultModels },
+              target: t.target,
+              wireApi: t.wireApi,
+              requiresOpenAiAuth: t.requiresOpenAiAuth,
+              envKey: t.envKey,
             }
           }
         }
@@ -267,7 +269,7 @@ export function TuiApp({ renderer }: TuiAppProps) {
     const apiKey = await showInputDialog("Enter API Key", "API Key", "", true)
     if (!apiKey) return
 
-    const defaultModel = await showInputDialog("Default Model", "Default model name:", defaults.models?.default || "", true)
+    const defaultModel = await showInputDialog("Default Model", "Default model name:", defaults.models?.default || "")
     if (defaultModel === null) return
 
     let haikuModel, opusModel, sonnetModel, wireApi, requiresOpenAiAuth
@@ -368,7 +370,7 @@ export function TuiApp({ renderer }: TuiAppProps) {
     { name: !activeProvider ? `(Default) ✓` : "(Default)", description: defaultLabel, value: "default" },
     ...providers.map((p: Provider) => ({
       name: activeProvider?.id === p.id ? `${p.name} ✓` : p.name,
-      description: p.models.default || "",
+      description: p.models.default || "(default set)",
       value: p.id
     }))
   ]
