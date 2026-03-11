@@ -111,6 +111,16 @@ export async function editProviderInteractive(providerId: string): Promise<void>
 
   configStore.updateProvider(providerId, updates);
 
+  // Re-apply config if editing the active provider
+  const target = provider.target || 'claude';
+  const activeProvider = configStore.getActiveProvider(target);
+  if (activeProvider?.id === providerId) {
+    const updatedProvider = configStore.getProvider(providerId);
+    if (updatedProvider) {
+      configStore.applyProvider(updatedProvider, true);
+    }
+  }
+
   console.log(chalk.green(`\nProvider "${answers.name}" updated successfully!`));
 }
 
@@ -154,6 +164,16 @@ export function editProviderFromArgs(providerId: string, args: {
   }
 
   configStore.updateProvider(providerId, updates);
+
+  // Re-apply config if editing the active provider
+  const target = provider.target || 'claude';
+  const activeProvider = configStore.getActiveProvider(target);
+  if (activeProvider?.id === providerId) {
+    const updatedProvider = configStore.getProvider(providerId);
+    if (updatedProvider) {
+      configStore.applyProvider(updatedProvider, true);
+    }
+  }
 
   console.log(chalk.green(`\nProvider "${provider.name}" updated successfully!`));
 }

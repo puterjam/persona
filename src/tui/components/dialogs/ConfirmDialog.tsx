@@ -22,7 +22,7 @@ export function ConfirmDialog({ title, message, onClose }: ConfirmDialogProps) {
   useKeyboard((key) => {
     if (key.name === "left" || key.name === "right") {
       setSelectedButton((prev) => (prev === 0 ? 1 : 0))
-    } else if (key.name === "return") {
+    } else if (key.name === "return" || key.name === "kpenter") {
       onClose(selectedButton === 0)
     } else if (key.name === "escape") {
       onClose(null)

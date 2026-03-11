@@ -1,5 +1,9 @@
-import type { SelectOption } from "@opentui/core"
+import type { SelectOption, SelectKeyBinding } from "@opentui/core"
 import type { ThemeColors } from "../../utils/theme"
+
+const kpenterBindings: SelectKeyBinding[] = [
+  { name: "kpenter", action: "select-current" }
+]
 
 interface ProviderListProps {
   options: SelectOption[]
@@ -52,6 +56,7 @@ export function ProviderList({
         showDescription={true}
         showScrollIndicator={true}
         wrapSelection={false}
+        keyBindings={kpenterBindings}
       />
     </box>
   )
